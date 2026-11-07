@@ -1,0 +1,200 @@
+[
+  {
+    "rva": "0x1ace",
+    "before": "7867c302",
+    "after": "0858c402",
+    "reason": "lea rcx, [rcx + 0x2c36778]"
+  },
+  {
+    "rva": "0x1adc",
+    "before": "6867c302",
+    "after": "f857c402",
+    "reason": "lea rcx, [rbx + 0x2c36768]"
+  },
+  {
+    "rva": "0x2add",
+    "before": "00bf2c02",
+    "after": "30af2d02",
+    "reason": "lea rcx, [r13 + 0x22cbf00]"
+  },
+  {
+    "rva": "0x2bc0",
+    "before": "ffff0301",
+    "after": "ffbf0401",
+    "reason": "cmp rax, 0x103ffff"
+  },
+  {
+    "rva": "0x3242",
+    "before": "ffff0301",
+    "after": "ffbf0401",
+    "reason": "cmp rax, 0x103ffff"
+  },
+  {
+    "rva": "0x3284",
+    "before": "ffff0301",
+    "after": "ffbf0401",
+    "reason": "cmp rax, 0x103ffff"
+  },
+  {
+    "rva": "0xced5",
+    "before": "29d73300",
+    "after": "99d33300",
+    "reason": "lea rax, [rbx + 0x33d729]"
+  },
+  {
+    "rva": "0xcf1e",
+    "before": "29d73400",
+    "after": "99d33400",
+    "reason": "lea rdx, [rbx + 0x34d729]"
+  },
+  {
+    "rva": "0xcf8f",
+    "before": "00bf2c02",
+    "after": "30af2d02",
+    "reason": "lea rcx, [rbx + 0x22cbf00]"
+  },
+  {
+    "rva": "0xd10c",
+    "before": "d859b102",
+    "after": "584ab202",
+    "reason": "lea rcx, [rbx + 0x2b159d8]"
+  },
+  {
+    "rva": "0xd450",
+    "before": "2060d000",
+    "after": "0064d000",
+    "reason": "lea rax, [rdi + 0xd06020]"
+  },
+  {
+    "rva": "0xd498",
+    "before": "2060d100",
+    "after": "0064d100",
+    "reason": "lea rbp, [rdi + 0xd16020]"
+  },
+  {
+    "rva": "0xde62",
+    "before": "ffff0301",
+    "after": "ffbf0401",
+    "reason": "cmp rax, 0x103ffff"
+  },
+  {
+    "rva": "0xe356",
+    "before": "7862c801",
+    "after": "2849c901",
+    "reason": "add rax, 0x1c86278"
+  },
+  {
+    "rva": "0xe4ba",
+    "before": "00bf2c02",
+    "after": "30af2d02",
+    "reason": "lea rcx, [rax + 0x22cbf00]"
+  },
+  {
+    "rva": "0xe581",
+    "before": "d062c801",
+    "after": "8049c901",
+    "reason": "lea rdi, [rax + 0x1c862d0]"
+  },
+  {
+    "rva": "0x62293",
+    "before": "00dad100",
+    "after": "e0ddd100",
+    "reason": "lea rax, [r13 + 0xd1da00]"
+  },
+  {
+    "rva": "0x62332",
+    "before": "00bf2c02",
+    "after": "30af2d02",
+    "reason": "lea rcx, [r13 + 0x22cbf00]"
+  },
+  {
+    "rva": "0x6536d",
+    "before": "f087ca00",
+    "after": "d08bca00",
+    "reason": "lea rax, [r14 + 0xca87f0]"
+  },
+  {
+    "rva": "0x65391",
+    "before": "1088ca00",
+    "after": "f08bca00",
+    "reason": "lea r13, [r14 + 0xca8810]"
+  },
+  {
+    "rva": "0x653a9",
+    "before": "107835ff",
+    "after": "307435ff",
+    "reason": "cmp byte ptr [r15 + rbp - 0xca87f0], al"
+  },
+  {
+    "rva": "0x65438",
+    "before": "f046d301",
+    "after": "f82ad401",
+    "reason": "lea rbp, [r14 + 0x1d346f0]"
+  },
+  {
+    "rva": "0x20df0",
+    "before": "38583000",
+    "after": "a8543000",
+    "reason": "input caller allowlist"
+  },
+  {
+    "rva": "0x20df4",
+    "before": "7a843400",
+    "after": "ea803400",
+    "reason": "input caller allowlist"
+  },
+  {
+    "rva": "0x20df8",
+    "before": "93903400",
+    "after": "038d3400",
+    "reason": "input caller allowlist"
+  },
+  {
+    "rva": "0x20dfc",
+    "before": "7a9a3400",
+    "after": "ea963400",
+    "reason": "input caller allowlist"
+  },
+  {
+    "rva": "0x20e00",
+    "before": "35443700",
+    "after": "a5403700",
+    "reason": "input caller allowlist"
+  },
+  {
+    "rva": "0x20e04",
+    "before": "6b443700",
+    "after": "db403700",
+    "reason": "input caller allowlist"
+  },
+  {
+    "rva": "0x20e08",
+    "before": "d0443700",
+    "after": "40413700",
+    "reason": "input caller allowlist"
+  },
+  {
+    "rva": "0x20e0c",
+    "before": "eb443700",
+    "after": "5b413700",
+    "reason": "input caller allowlist"
+  },
+  {
+    "rva": "0x20e10",
+    "before": "38473700",
+    "after": "a8433700",
+    "reason": "input caller allowlist"
+  },
+  {
+    "rva": "0x20e14",
+    "before": "51473700",
+    "after": "c1433700",
+    "reason": "input caller allowlist"
+  },
+  {
+    "rva": "0xcebb",
+    "before": "f30f5c059f85fb01",
+    "after": "f30f5c055f79fc01",
+    "reason": "draw activity signature"
+  }
+]

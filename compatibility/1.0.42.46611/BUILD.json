@@ -1,0 +1,8 @@
+{
+  "base": "Series Experimental 04",
+  "target_exe_version": "1.0.42.46611",
+  "target_exe_sha256": "cc27983d9b9183ad32bf9f12d234a3b76ced27d32cce054279895d65e765b2c5",
+  "mod_sha256": "cefa1ce4d471108a858097fff2f4723873a9d3b705accce29e5f787a06d8fe4d",
+  "tests": 41,
+  "game_tested": false
+}
