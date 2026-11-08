@@ -20,133 +20,151 @@
   {
     "rva": "0x1f5c",
     "before": "d0b70000",
-    "after": "306a0600",
+    "after": "506f0600",
     "reason": "select_node"
   },
   {
     "rva": "0x261d",
     "before": "cfb10000",
-    "after": "9f690600",
+    "after": "bf6e0600",
     "reason": "playing_node"
   },
   {
     "rva": "0x2656",
     "before": "16b40000",
-    "after": "c6690600",
+    "after": "e66e0600",
     "reason": "rapid_pose"
   },
   {
     "rva": "0x2805",
     "before": "e7af0000",
-    "after": "b7670600",
+    "after": "d76c0600",
     "reason": "playing_node"
   },
   {
     "rva": "0x43d5",
     "before": "57930000",
-    "after": "b7450600",
+    "after": "d74a0600",
     "reason": "select_node"
   },
   {
     "rva": "0x4a24",
     "before": "48900000",
-    "after": "f8450600",
+    "after": "184b0600",
     "reason": "rapid_pose"
+  },
+  {
+    "rva": "0x4c2c",
+    "before": "c0870000",
+    "after": "b04d0600",
+    "reason": "controlled_request"
   },
   {
     "rva": "0x586d",
     "before": "bf7e0000",
-    "after": "1f310600",
+    "after": "3f360600",
     "reason": "select_node"
   },
   {
     "rva": "0x593c",
     "before": "30810000",
-    "after": "e0360600",
+    "after": "003c0600",
     "reason": "rapid_pose"
   },
   {
     "rva": "0x5ac8",
     "before": "f4baffff",
-    "after": "b4350600",
+    "after": "d43a0600",
     "reason": "longarm_aim"
   },
   {
     "rva": "0x5cdc",
     "before": "507a0000",
-    "after": "b02c0600",
+    "after": "d0310600",
     "reason": "select_node"
   },
   {
     "rva": "0x5d62",
     "before": "5ab8ffff",
-    "after": "1a330600",
+    "after": "3a380600",
     "reason": "longarm_aim"
   },
   {
     "rva": "0x5dc6",
     "before": "66790000",
-    "after": "c62b0600",
+    "after": "e6300600",
     "reason": "select_node"
   },
   {
     "rva": "0x5f02",
     "before": "2a780000",
-    "after": "8a2a0600",
+    "after": "aa2f0600",
     "reason": "select_node"
   },
   {
     "rva": "0x60f9",
     "before": "33760000",
-    "after": "93280600",
+    "after": "b32d0600",
     "reason": "select_node"
   },
   {
     "rva": "0x612c",
     "before": "00760000",
-    "after": "60280600",
+    "after": "802d0600",
     "reason": "select_node"
   },
   {
     "rva": "0x615f",
     "before": "cd750000",
-    "after": "2d280600",
+    "after": "4d2d0600",
     "reason": "select_node"
   },
   {
     "rva": "0x619b",
     "before": "21b4ffff",
-    "after": "e12e0600",
+    "after": "01340600",
     "reason": "longarm_aim"
   },
   {
     "rva": "0x625fb",
     "before": "f1faffff",
-    "after": "616d0000",
+    "after": "f1700000",
     "reason": "mark_empty_stable"
   },
   {
     "rva": "0x6400c",
     "before": "2097faff",
-    "after": "80490000",
+    "after": "a04e0000",
     "reason": "select_node"
+  },
+  {
+    "rva": "0x65296",
+    "before": "f6fdffff",
+    "after": "e6440000",
+    "reason": "longarm_queue"
+  },
+  {
+    "rva": "0x65678",
+    "before": "14faffff",
+    "after": "04410000",
+    "reason": "longarm_queue"
   },
   {
     "rva": "0x4025",
     "before": "c7980000",
-    "after": "b7520600",
+    "after": "47560600",
     "reason": "should_passthrough"
   },
   {
     "rva": "0x4763",
     "before": "19d8ffff",
-    "after": "d94b0600",
+    "after": "694f0600",
     "reason": "cancel_passthrough"
   },
   {
     "rva": "0x39b4",
     "before": "e9f51b0600",
-    "after": "e9475a0600",
+    "after": "e937650600",
     "reason": "bounded longarm timing tick"
   }
 ]

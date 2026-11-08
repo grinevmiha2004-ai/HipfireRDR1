@@ -66,5 +66,36 @@
         "nor_rfl_180_run_hld_fir"
       ]
     }
-  ]
+  ],
+  "crouch": {
+    "path": [
+      "bd701184",
+      "892a3c35",
+      "2751a740",
+      "92133daf",
+      "be49465c"
+    ],
+    "nodes": 26,
+    "ordinary_clips": [
+      "crc_rfl_180_run_dwn_aim",
+      "crc_rfl_180_run_mid_aim",
+      "crc_rfl_180_run_mid_fir",
+      "crc_rfl_180_run_upp_aim",
+      "crc_rfl_run_hld_dwn_aim",
+      "crc_rfl_run_hld_mid_aim",
+      "crc_rfl_run_hld_upp_aim",
+      "crc_rfl_stn_dwn_for_aim",
+      "crc_rfl_stn_hld_dwn_aim",
+      "crc_rfl_stn_hld_mid_aim",
+      "crc_rfl_stn_hld_upp_aim",
+      "crc_rfl_stn_mid_for_aim",
+      "crc_rfl_stn_mid_for_fir",
+      "crc_rfl_stn_upp_for_aim",
+      "crc_rfl_wlk_aup_fir",
+      "crc_rfl_wlk_hld_dwn_aim",
+      "crc_rfl_wlk_hld_mid_aim",
+      "crc_rfl_wlk_hld_upp_aim"
+    ],
+    "dedicated_rapid_family": false
+  }
 }

@@ -1,4 +1,4 @@
-SECTIONS { . = 0x68000; .text : { *(.text*) *(.rodata*) } . = 0x6b000; .data : { *(.data*) *(.bss*) BYTE(0) } /DISCARD/ : { *(.eh_frame*) *(.comment*) *(.note*) } }
+SECTIONS { . = 0x68000; .text : { *(.text*) *(.rodata*) } . = 0x6c000; .data : { *(.data*) *(.bss*) BYTE(0) } /DISCARD/ : { *(.eh_frame*) *(.comment*) *(.note*) } }
 original_select = 0xd730;
 original_playing = 0xd7f0;
 original_weapon = 0xd870;
@@ -25,3 +25,15 @@ release_at = 0x24060;
 original_tick = 0x655ae;
 
 reload_pending = 0x63000;
+original_queue = 0x65090;
+original_plan = 0x2230;
+original_request = 0xd3f0;
+original_shoot_goal = 0x1580;
+clear_shoot_goal = 0x1dd0;
+owned_shoot_goal = 0x2407c;
+owned_target = 0x24070;
+saved_heading = 0x24058;
+input_state = 0xf900;
+rh_init = 0x24030;
+rh_push = 0x24028;
+rh_call = 0x24020;

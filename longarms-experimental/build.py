@@ -17,7 +17,7 @@ def patch(rva,before,after,reason):
 # SDK firearm IDs 0..20; lasso/melee/throwables/turrets remain excluded.
 for rva in [0x3a71,0x404b,0x4a6f]:patch(rva,b'\x07',b'\x14','weapon limit 7 -> 20')
 cs=capstone.Cs(capstone.CS_ARCH_X86,capstone.CS_MODE_64);cs.detail=True
-redirect={0xd730:'select_node',0xd7f0:'playing_node',0xda70:'rapid_pose',0x15c0:'longarm_aim',0x620f0:'mark_empty_stable'};seen=set();counts={k:0 for k in redirect}
+redirect={0xd730:'select_node',0xd7f0:'playing_node',0xda70:'rapid_pose',0x15c0:'longarm_aim',0x620f0:'mark_empty_stable',0x65090:'longarm_queue',0xd3f0:'controlled_request'};seen=set();counts={k:0 for k in redirect}
 for e in p.DIRECTORY_ENTRY_EXCEPTION:
  start=e.struct.BeginAddress;end=e.struct.EndAddress
  for i in cs.disasm(p.get_data(start,end-start),start):
@@ -50,6 +50,21 @@ for name,(start,size) in syms.items():
    n=int(i.op_str.split(', ')[1],0);ops.append(bytes([off,((n//8-1)<<4)|2]) if n<=128 else bytes([off,1])+struct.pack('<H',n//8));prolog=off;break
   elif i.mnemonic in ['mov','xor','lea','test','cmp','nop']:continue
   else:break
+ # GCC saves nonvolatile XMM registers after allocating the frame.
+ # Describe those saves as well, so Windows can unwind native calls here.
+ saved_xmm=set();dirty_xmm=set()
+ for i in cs.disasm(bytes(code[start-code_rva:start-code_rva+255]),start):
+  if i.mnemonic.startswith('j') or i.mnemonic in ['call','ret']:break
+  if len(i.operands)!=2:
+   dirty_xmm.update(i.reg_name(r) for r in i.regs_access()[1]);continue
+  dst,src=i.operands
+  if dst.type==capstone.x86.X86_OP_MEM and src.type==capstone.x86.X86_OP_REG and dst.mem.base==capstone.x86.X86_REG_RSP:
+   reg=i.reg_name(src.reg)
+   if dst.size==16 and reg.startswith('xmm') and int(reg[3:])>=6 and reg not in saved_xmm and reg not in dirty_xmm:
+    off=i.address+i.size-start;disp=dst.mem.disp
+    assert dst.size==16 and disp>=0 and disp%16==0 and not dst.mem.index
+    ops.append(bytes([off,(int(reg[3:])<<4)|8])+struct.pack('<H',disp//16));saved_xmm.add(reg);prolog=max(prolog,off)
+  dirty_xmm.update(i.reg_name(r) for r in i.regs_access()[1])
  while len(code)%4:code.append(0)
  unwind=code_rva+len(code);blob=b''.join(reversed(ops));count=len(blob)//2
  bridge=name=='longarm_bridge'
@@ -61,9 +76,9 @@ while len(code)%4:code.append(0)
 table=code_rva+len(code)
 all_entries=sorted([(e.struct.BeginAddress,e.struct.EndAddress,e.struct.UnwindData) for e in p.DIRECTORY_ENTRY_EXCEPTION]+entries)
 code+=b''.join(struct.pack('<III',*e) for e in all_entries)
-data_rva=syms['choice'][0];assert len(code)<=data_rva-code_rva;code+=b'\0'*(data_rva-code_rva-len(code))
+data_rva=0x6c000;assert len(code)<=data_rva-code_rva;code+=b'\0'*(data_rva-code_rva-len(code))
 # .data contains only zero-initialized cache / -1 handles, never static pointers.
-data=(R/'data.bin').read_bytes();assert len(data)<=256
+data=(R/'data.bin').read_bytes();assert len(data)<=4096
 align=lambda n,a:(n+a-1)//a*a
 count=len(p.sections)
 for name,rva,payload,flags in [(b'.longarm',code_rva,code,0x60000020),(b'.lngdata',data_rva,data,0xc0000040)]:

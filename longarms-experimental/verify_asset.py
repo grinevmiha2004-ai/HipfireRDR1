@@ -24,4 +24,21 @@ for n,mode,prefix in [(0x171900,'stand','nor_rfl_stn_rpd_'),(0x171980,'walk','no
  clips=[b[ptr(aim[0]+i):].split(b'\0',1)[0].decode('ascii') for i in range(16,32,4)]
  assert all(c.startswith(prefix) for c in clips[:3]);assert clips[3].endswith('_fir')
  entries.append(dict(mode=mode,path=path(n),clips=clips))
-print(json.dumps(dict(source='act.rpf/default_character.wat',unpacked_sha256=hashlib.sha256(b).hexdigest(),family_path=path(family),child_hashes=[f'{v:08x}' for v in hashes(family)],actions=entries),indent=2))
+# The crouched rifle subtree has ordinary aim/fire clips, no rapid family.
+root=0x100300
+seen=set();crouch_clips=set();node_hashes=set()
+def visit(n):
+ if n in seen:return
+ seen.add(n);node_hashes.add(u(n+32))
+ for child in kids(n):visit(child)
+ count=u(n+48)&65535
+ for i in range(count):
+  t=ptr(ptr(n+44)+4*i)
+  if u(t)==0 and u(t+16)>>28==5:visit(ptr(t+16))
+  elif u(t)==23:
+   for k in range(16,32,4):
+    if u(t+k)>>28==5:crouch_clips.add(b[ptr(t+k):].split(b'\0',1)[0].decode('ascii'))
+visit(root)
+assert len(seen)==26 and 0xbcacd642 not in node_hashes
+assert len(crouch_clips)==18 and not any('_rpd_' in clip for clip in crouch_clips)
+print(json.dumps(dict(source='act.rpf/default_character.wat',unpacked_sha256=hashlib.sha256(b).hexdigest(),family_path=path(family),child_hashes=[f'{v:08x}' for v in hashes(family)],actions=entries,crouch=dict(path=path(root),nodes=len(seen),ordinary_clips=sorted(crouch_clips),dedicated_rapid_family=False)),indent=2))

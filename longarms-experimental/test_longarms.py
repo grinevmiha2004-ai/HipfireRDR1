@@ -68,6 +68,21 @@ class LongarmTests(m.GuardTests):
   for name in ['standing','rapid_walk','rapid_run','moving','crouched','crouched_moving']:v.q(v.nodes[name],leafvt)
   v.leafvt=leafvt
   v.expected=v.nodes['standing'] if k==0 else v.nodes['middle'] if k==1 else 0
+  def live_plan():
+   dst=v.u.reg_read(UC_X86_REG_RDX)
+   raw=getattr(v,'live_plan',bytes(v.u.mem_read(v.base+0x24070,12))+bytes(v.u.mem_read(v.base+0x24058,4))+b'\0'*8)
+   v.u.mem_write(dst,raw);return int(not getattr(v,'bad_plan',False))
+  v.callbacks[v.base+0x2230]=live_plan
+  v.native_args=[]
+  v.q(v.base+0x24028,0x50000600)
+  v.callbacks[0x50000600]=lambda:v.native_args.append(v.u.reg_read(UC_X86_REG_RCX)) or 0
+  previous_native=v.callbacks[0x50000200]
+  def native_camera():
+   if v.hash==0x6b7677bf:v.q(v.heap+0xc000,1);return v.heap+0xc000
+   if v.hash==0x4a65f0b7:
+    v.u.mem_write(v.native_args[-1],struct.pack('<fff',0,0,0));return v.heap+0xc000
+   return previous_native()
+  v.callbacks[0x50000200]=native_camera
   return v
  def path(self,v,k):
   rv=[0x202c0,0x201b8,0x20200,0x20260][k];text=bytes(p.get_data(rv,256)).split(b'\0')[0]
@@ -330,6 +345,108 @@ class LongarmTests(m.GuardTests):
   v.real_engine();v.mark();v.tick();self.assertEqual(v.requests,1)
  def test_reload_confirmation_actor_also_comes_from_stable_controls(self):
   v=m.s.old.VM();v.i(v.frame+0x68,99);v.mark();self.assertEqual(v.pending(),42)
+ def intent_fixture(self,k=0):
+  v=HandgunTests().vm(kind=k);self.fixture(13,k,v=v)
+  ptr,_=self.path(v,k);self.call(v,'select_node',42,ptr)
+  v.i(v.base+0xf7cc,42);v.i(v.base+0x24080,k);v.b(v.base+0x2407e,1)
+  v.i(v.frame+0x76c,13);v.f(v.frame+0x828,5)
+  v.q(v.frame+0x40,1000);v.request_calls=0
+  def request():
+   out=v.u.reg_read(UC_X86_REG_RCX);v.request_calls+=1
+   v.u.mem_write(out,struct.pack('<iiff',1,8,-1,0));return out
+  def clear():
+   v.calls.append(('clear_shoot',));v.b(v.base+0x2407c,0);return 0
+  v.callbacks[v.base+0xd3f0]=request;v.callbacks[v.base+0x1dd0]=clear
+  return v
+ def test_longarm_standing_backlog_from_07_expires_in_08(self):
+  def trial(old=False):
+   current=m.s.old.PLUGIN_IMAGE
+   try:
+    if old:m.s.old.PLUGIN_IMAGE=pefile.PE('/workspace/hipfire-longarms7/output/HipfireRDR1.red').get_memory_mapped_image()
+    v=self.fixture(k=0);v.i(v.frame+0x76c,13);self.put_queue(v,[14,15,16,17]);self.pre(v,1000);self.pre(v,1500)
+    return self.queued_ids(v)
+   finally:m.s.old.PLUGIN_IMAGE=current
+  self.assertEqual(trial(True),[14,15,16,17]);self.assertEqual(trial(),[])
+ def test_longarm_expiry_prunes_wrapped_queue_but_preserves_fresh_click(self):
+  for k in [0,1]:
+   v=self.intent_fixture(k);self.put_queue(v,[11,12],63);self.pre(v,1000)
+   self.put_queue(v,[11,12,13],63);self.pre(v,1200);self.pre(v,1251)
+   self.assertEqual(self.queued_ids(v),[13])
+ def test_unaccepted_cycle_wait_is_abandoned_without_releasing_hip_pose(self):
+  v=self.intent_fixture();self.put_queue(v,[14,15]);v.b(v.frame+0x770,1);v.b(v.frame+0x771,1)
+  v.b(v.base+0x2407c,1);v.b(v.base+0x2407d,1);v.b(v.frame+0x152,1)
+  node=v.getq(v.ctrl+0xb0);before=bytes(v.u.mem_read(v.weapon,0x600))
+  self.call(v,'longarm_controls',v.frame);v.q(v.frame+0x40,1401)
+  self.call(v,'longarm_controls',v.frame)
+  self.assertEqual(v.u.mem_read(v.frame+0x770,2),b'\0\0');self.assertEqual(self.queued_ids(v),[15])
+  self.assertIn(('clear_shoot',),v.calls);self.assertEqual(v.u.mem_read(v.base+0x2407d,1),b'\1')
+  self.assertEqual(v.getq(v.ctrl+0xb0),node);self.assertEqual(v.geti(v.base+0xf900)&1,0)
+  self.assertEqual(bytes(v.u.mem_read(v.weapon,0x600)),before)
+  self.pre(v,1402);self.assertEqual(self.queued_ids(v),[])
+ def test_engine_accepted_round_is_preserved_until_confirmation(self):
+  v=self.intent_fixture();self.put_queue(v,[14]);v.b(v.frame+0x770,1);v.b(v.frame+0x777,1)
+  self.call(v,'longarm_controls',v.frame);v.q(v.frame+0x40,1600);self.call(v,'longarm_controls',v.frame)
+  self.assertEqual(self.queued_ids(v),[14]);self.assertEqual(v.u.mem_read(v.frame+0x770,1),b'\1')
+ def test_held_rifle_tracks_new_target_without_creating_fire_or_restarting_node(self):
+  for k in [0,1]:
+   v=self.intent_fixture(k);v.b(v.base+0x2407d,1);v.u.mem_write(v.base+0x24070,struct.pack('<fff',0,0,100))
+   v.live_plan=struct.pack('<ffffIB3x',100,20,0,90,0,1);v.calls=[]
+   node=v.getq(v.ctrl+0xb0);before=bytes(v.u.mem_read(v.weapon,0x600))
+   self.call(v,'longarm_controls',v.frame)
+   self.assertEqual(bytes(v.u.mem_read(v.base+0x24070,12)),v.live_plan[:12])
+   self.assertEqual(v.calls,[('aim',v.live_plan[:12])]);self.assertEqual(v.request_calls,0)
+   self.assertEqual(v.getq(v.ctrl+0xb0),node);self.assertEqual(bytes(v.u.mem_read(v.weapon,0x600)),before)
+ def test_pending_goal_tracks_new_target_and_accepted_goal_is_not_reissued(self):
+  for accepted in [False,True]:
+   v=self.intent_fixture();v.b(v.base+0x2407d,1);v.b(v.base+0x2407c,1);v.b(v.frame+0x770,1);v.b(v.frame+0x777,int(accepted))
+   v.live_plan=struct.pack('<ffffIB3x',100,20,0,90,0,1);v.calls=[]
+   self.call(v,'longarm_controls',v.frame)
+   self.assertEqual([x[0] for x in v.calls],['aim']+([] if accepted else ['shoot_goal']))
+ def test_new_aim_waits_for_engine_update_and_full_alignment_before_request(self):
+  v=self.intent_fixture();v.b(v.base+0x2407d,1);v.u.mem_write(v.base+0x24070,struct.pack('<fff',0,0,100))
+  v.live_plan=struct.pack('<ffffIB3x',100,20,0,90,0,1);self.call(v,'longarm_queue',v.frame,0)
+  out=v.heap+0x21000;self.call(v,'controlled_request',out,42)
+  self.assertEqual(v.geti(out),-3);self.assertEqual(v.request_calls,0)
+  v.q(v.frame+0x40,1051);v.f(v.weapon+0x368,.28);self.call(v,'controlled_request',out,42)
+  self.assertEqual(v.geti(out),-3);self.assertEqual(v.request_calls,0)
+  v.f(v.weapon+0x368,0);self.call(v,'controlled_request',out,42)
+  self.assertEqual(v.geti(out),1);self.assertEqual(v.request_calls,1)
+ def test_input_trigger_obeys_same_alignment_gate_as_internal_request(self):
+  v=self.intent_fixture();v.b(v.frame+0x770,1);v.b(v.frame+0x771,1);v.b(v.frame+0x152,1);v.i(v.base+0xf900,7)
+  v.f(v.weapon+0x368,.28);self.call(v,'longarm_controls',v.frame)
+  self.assertEqual(v.geti(v.base+0xf900)&1,0);self.assertEqual(v.u.mem_read(v.frame+0x771,1),b'\1')
+ def test_waiting_for_alignment_preserves_already_released_input_frames(self):
+  v=self.intent_fixture();v.b(v.frame+0x770,1);v.b(v.frame+0x775,1)
+  v.b(v.frame+0x152,0);v.i(v.base+0xf900,4);v.i(v.frame+0x7d0,3)
+  v.f(v.weapon+0x368,1);self.call(v,'longarm_controls',v.frame)
+  self.assertEqual(v.geti(v.frame+0x7d0),3)
+ def test_failed_live_target_suppresses_new_request(self):
+  v=self.intent_fixture();v.bad_plan=True;self.call(v,'longarm_queue',v.frame,0)
+  out=v.heap+0x21000;self.call(v,'controlled_request',out,42)
+  self.assertEqual(v.geti(out),-3);self.assertEqual(v.request_calls,0)
+ def test_handgun_and_sawedoff_requests_preserve_original_behavior(self):
+  for w in list(range(8))+[15]:
+   v=self.intent_fixture();v.i(v.frame+0x76c,w);self.call(v,'longarm_queue',v.frame,0)
+   v.f(v.weapon+0x368,1);out=v.heap+0x21000;self.call(v,'controlled_request',out,42)
+   self.assertEqual(v.geti(out),1);self.assertEqual(v.request_calls,1)
+ def test_disabled_controls_and_crouched_modes_do_not_update_aim(self):
+  for off,val in [(0xf960,0),(0xf7c8,0),(0x24080,2),(0x24080,3)]:
+   v=self.intent_fixture();v.live_plan=struct.pack('<ffffIB3x',100,20,0,90,0,1);v.calls=[]
+   if off==0x24080:v.i(v.base+off,val)
+   else:v.b(v.base+off,val)
+   before=bytes(v.u.mem_read(v.frame,0x900));self.call(v,'longarm_controls',v.frame)
+   self.assertEqual(v.calls,[]);self.assertEqual(bytes(v.u.mem_read(v.frame,0x900)),before)
+ def test_live_target_unwind_preserves_nonvolatile_vector_registers(self):
+  start=syms['_ZL14refresh_targetPh'][0]
+  entry=next(e.struct for e in p.DIRECTORY_ENTRY_EXCEPTION if e.struct.BeginAddress==start)
+  raw=p.get_data(entry.UnwindData,100);count=raw[2];index=0;saves={}
+  while index<count:
+   offset,op=raw[4+index*2:6+index*2];index+=1;kind=op&15
+   if kind==8:
+    saves[op>>4]=struct.unpack_from('<H',raw,4+index*2)[0]*16;index+=1
+   elif kind==1:index+=1 if op>>4==0 else 2
+  self.assertEqual(saves,{6:0x50,7:0x60,8:0x70,9:0x80})
+  self.assertGreaterEqual(raw[1],0x41)
  def test_final_pe_and_original_sections(self):
   original=pefile.PE('/workspace/hipfire-series4/output/HipfireRDR1.red');allowed=set()
   for patch in json.loads((R/'patch-report.json').read_text()):

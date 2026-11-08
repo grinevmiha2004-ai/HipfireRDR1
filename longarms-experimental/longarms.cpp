@@ -166,7 +166,9 @@ extern "C" void MS longarm_aim(int actor,void* target){
  if(select_resolved(owner,selected))log_event("longarm_after_goal actor=%d reapplied_once=1",actor);
 }
 template<class T>T& at(B* f,U o){return *reinterpret_cast<T*>(f+o);}
+extern "C" void MS longarm_controls(B*);
 extern "C" void MS longarm_tick(B* f){
+ longarm_controls(f);
  const int actor=at<int>(f,0x768),w=at<int>(f,0x76c);
  if(!mod_enabled||!input_enabled||!rifle(w)||owned_actor!=actor||choice.actor!=actor||choice.weapon!=w||!owned_expanded||owned_kind<0||owned_kind>1||!(at<float>(f,0x828)>0.5f)){
   choice.prepare_value=choice.confirmation=choice.hold_until=0;return;
@@ -219,3 +221,104 @@ extern "C" void MS mark_empty_stable(B* f){
  if(reload_pending.weapon>=8&&reload_pending.weapon<=20)log_event("autoreload armed actor=%d weapon=%d stable_state=1",reload_pending.actor,reload_pending.weapon);
 }
 #include "signature.hpp"
+
+// Longarm input intent has a lifetime independent of the held animation.
+struct Vec {float x,y,z;};
+struct Plan {Vec target;float heading;U id;B reticle,pad[3];};
+static_assert(sizeof(Plan)==24);
+struct RequestResult {int status,state;float cycle,alignment;};
+extern "C" {
+void MS original_queue(B*,bool);
+bool MS original_plan(int,Plan*);
+RequestResult* MS original_request(RequestResult*,U);
+void MS original_shoot_goal(int,const Vec*);
+void MS clear_shoot_goal();
+extern Vec owned_target;extern float saved_heading;extern B owned_shoot_goal;
+extern U input_state;extern Q rh_init,rh_push,rh_call;
+}
+struct Seen {U id=0;Q born=0;};
+struct Intent {Seen seen[64];int actor=-1,weapon=-1;B* frame=nullptr;Q steer_until=0;U reports=0;};
+Intent intent;
+static bool scoped(B* f){return mod_enabled&&input_enabled&&at<int>(f,0x768)>=0&&rifle(at<int>(f,0x76c));}
+static void reset_intent(){intent.actor=-1;intent.frame=nullptr;intent.steer_until=0;}
+extern "C" void MS longarm_queue(B* f,bool prune){
+ if(!rifle(at<int>(f,0x76c))){reset_intent();original_queue(f,prune);return;}
+ if(!scoped(f)){reset_intent();return;}
+ const int a=at<int>(f,0x768),w=at<int>(f,0x76c);
+ if(intent.actor!=a||intent.weapon!=w){for(auto& x:intent.seen)x.id=0;intent.actor=a;intent.weapon=w;intent.steer_until=0;}
+ intent.frame=f;
+ Q& count=at<Q>(f,0x760);const Q head=at<Q>(f,0x758),now=at<Q>(f,0x40);
+ if(count>64||head>=64)return;
+ U kept=0,initial=static_cast<U>(count);
+ for(U i=0;i<initial;++i){
+  auto* p=reinterpret_cast<Plan*>(f+0x158+((head+i)&63)*24);
+  Seen& seen=intent.seen[p->id&63];if(seen.id!=p->id){seen.id=p->id;seen.born=now;}
+  const bool active=i==0&&at<B>(f,0x770);
+  if(prune&&!active&&now>=seen.born&&now-seen.born>250){log_event("longarm_intent expired id=%u age_ms=%llu",p->id,now-seen.born);continue;}
+  if(kept!=i)*reinterpret_cast<Plan*>(f+0x158+((head+kept)&63)*24)=*p;
+  ++kept;
+ }
+ count=kept;
+}
+static bool finite_float(float f){union{float f;U u;}x{f};return (x.u&0x7f800000U)!=0x7f800000U;}
+static bool refresh_target(B* f){
+ Plan p{};const int actor=at<int>(f,0x768);
+ if(!original_plan(actor,&p)||!finite_float(p.target.x)||!finite_float(p.target.y)||!finite_float(p.target.z)||!finite_float(p.heading))return false;
+ const float dx=p.target.x-owned_target.x,dy=p.target.y-owned_target.y,dz=p.target.z-owned_target.z;
+ float yaw=p.heading-saved_heading;while(yaw>180)yaw-=360;while(yaw< -180)yaw+=360;
+ if(dx*dx+dy*dy+dz*dz<0.0001f&&yaw<=0.25f&&yaw>=-0.25f)return true;
+ // Compare rays from the current camera origin, so a distant target's
+ // motion along the ray does not count as an angular change.
+ reinterpret_cast<void(MS*)(U)>(rh_init)(0x6b7677bfU);
+ const Q* result=reinterpret_cast<const Q*(MS*)()>(rh_call)();
+ const int camera=result?static_cast<int>(*result):0;
+ Vec origin{};
+ reinterpret_cast<void(MS*)(U)>(rh_init)(0x4a65f0b7U);
+ reinterpret_cast<void(MS*)(Q)>(rh_push)(static_cast<U>(camera));
+ reinterpret_cast<void(MS*)(Q)>(rh_push)(reinterpret_cast<Q>(&origin));
+ reinterpret_cast<void(MS*)()>(rh_call)();
+ const Vec a{owned_target.x-origin.x,owned_target.y-origin.y,owned_target.z-origin.z};
+ const Vec b{p.target.x-origin.x,p.target.y-origin.y,p.target.z-origin.z};
+ const float aa=a.x*a.x+a.y*a.y+a.z*a.z,bb=b.x*b.x+b.y*b.y+b.z*b.z,dot=a.x*b.x+a.y*b.y+a.z*b.z;
+ if(!finite_float(aa)||!finite_float(bb)||!(aa>0.01f&&bb>0.01f)||dot<=0||dot*dot<aa*bb*0.9996954f||yaw>1||yaw< -1)intent.steer_until=at<Q>(f,0x40)+50;
+ owned_target=p.target;saved_heading=p.heading;at<Vec>(f,0x7e4)=p.target;
+ if(owned_goal)original_aim(actor,&owned_target);
+ if(at<B>(f,0x770)&&!at<B>(f,0x777)&&owned_shoot_goal)original_shoot_goal(actor,&owned_target);
+ if(intent.reports<8){++intent.reports;log_event("longarm_live_aim actor=%d updated=1",actor);}
+ return true;
+}
+static bool aligned(int actor){
+ Q owner=owner_for(actor),c=owner?ptr(owner+0x38):0,m=c?ptr(c+0xaa8):0,w=m?ptr(m+8):0;
+ float alignment=1;
+ return w&&ptr(w+8)==c&&read(w+0x368,&alignment,4)&&finite_float(alignment)&&alignment>=0&&alignment<=0.02f;
+}
+static void trigger_up(B* f){
+ // Publish a released trigger without releasing the AIM goal or action node.
+ const bool was_down=at<B>(f,0x152)||(input_state&1U);
+ __atomic_store_n(&input_state,4U+(was_down?2U:0U),__ATOMIC_RELEASE);
+ at<B>(f,0x152)=0;if(was_down)at<U>(f,0x7d0)=0;
+}
+extern "C" RequestResult* MS controlled_request(RequestResult* out,U actor){
+ B* f=intent.frame;
+ if(!f||!scoped(f)||at<int>(f,0x768)!=static_cast<int>(actor)||!rifle(at<int>(f,0x76c)))return original_request(out,actor);
+ const bool fresh=refresh_target(f);
+ if(!fresh||at<Q>(f,0x40)<intent.steer_until||!aligned(static_cast<int>(actor))){*out={-3,-1,-1,1};return out;}
+ return original_request(out,actor);
+}
+extern "C" void MS longarm_controls(B* f){
+ if(!scoped(f)||!(at<float>(f,0x828)>0.5f)||owned_actor!=at<int>(f,0x768)||choice.actor!=owned_actor||choice.weapon!=at<int>(f,0x76c)||!owned_expanded||owned_kind<0||owned_kind>1)return;
+ longarm_queue(f,false);
+ const Q now=at<Q>(f,0x40),count=at<Q>(f,0x760),head=at<Q>(f,0x758);
+ if(at<B>(f,0x770)&&!at<B>(f,0x777)&&count&&count<=64&&head<64){
+  U id=reinterpret_cast<Plan*>(f+0x158+head*24)->id;const Seen& seen=intent.seen[id&63];
+  if(seen.id==id&&now>=seen.born&&now-seen.born>400){
+   if(owned_shoot_goal)clear_shoot_goal();
+   at<Q>(f,0x758)=(head+1)&63;at<Q>(f,0x760)=count-1;
+   for(U o=0x770;o<=0x777;++o)if(o!=0x772)at<B>(f,o)=0;
+   at<U>(f,0x7a4)=0;at<U>(f,0x7d4)=0;at<Q>(f,0x808)=0;
+   trigger_up(f);log_event("longarm_intent abandoned id=%u age_ms=%llu pose_retained=1",id,now-seen.born);
+  }
+ }
+ const bool fresh=refresh_target(f);
+ if(at<B>(f,0x770)&&!at<B>(f,0x777)&&(!fresh||now<intent.steer_until||!aligned(owned_actor)))trigger_up(f);
+}
