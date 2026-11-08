@@ -26,19 +26,19 @@
   {
     "rva": "0x261d",
     "before": "cfb10000",
-    "after": "3f690600",
+    "after": "9f690600",
     "reason": "playing_node"
   },
   {
     "rva": "0x2656",
     "before": "16b40000",
-    "after": "66690600",
+    "after": "c6690600",
     "reason": "rapid_pose"
   },
   {
     "rva": "0x2805",
     "before": "e7af0000",
-    "after": "57670600",
+    "after": "b7670600",
     "reason": "playing_node"
   },
   {
@@ -50,7 +50,7 @@
   {
     "rva": "0x4a24",
     "before": "48900000",
-    "after": "98450600",
+    "after": "f8450600",
     "reason": "rapid_pose"
   },
   {
@@ -62,13 +62,13 @@
   {
     "rva": "0x593c",
     "before": "30810000",
-    "after": "80360600",
+    "after": "e0360600",
     "reason": "rapid_pose"
   },
   {
     "rva": "0x5ac8",
     "before": "f4baffff",
-    "after": "54350600",
+    "after": "b4350600",
     "reason": "longarm_aim"
   },
   {
@@ -80,7 +80,7 @@
   {
     "rva": "0x5d62",
     "before": "5ab8ffff",
-    "after": "ba320600",
+    "after": "1a330600",
     "reason": "longarm_aim"
   },
   {
@@ -116,13 +116,13 @@
   {
     "rva": "0x619b",
     "before": "21b4ffff",
-    "after": "812e0600",
+    "after": "e12e0600",
     "reason": "longarm_aim"
   },
   {
     "rva": "0x625fb",
     "before": "f1faffff",
-    "after": "016d0000",
+    "after": "616d0000",
     "reason": "mark_empty_stable"
   },
   {
@@ -134,19 +134,19 @@
   {
     "rva": "0x4025",
     "before": "c7980000",
-    "after": "57520600",
+    "after": "b7520600",
     "reason": "should_passthrough"
   },
   {
     "rva": "0x4763",
     "before": "19d8ffff",
-    "after": "794b0600",
+    "after": "d94b0600",
     "reason": "cancel_passthrough"
   },
   {
     "rva": "0x39b4",
     "before": "e9f51b0600",
-    "after": "e9e7590600",
+    "after": "e9475a0600",
     "reason": "bounded longarm timing tick"
   }
 ]

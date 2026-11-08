@@ -1,0 +1,70 @@
+{
+  "source": "act.rpf/default_character.wat",
+  "unpacked_sha256": "1ed66a66d2cd5574ca5dfe6f7501ba8326130c47031da8182d98ca9f787156f1",
+  "family_path": [
+    "bd701184",
+    "18e67533",
+    "840a9c18",
+    "bcacd642",
+    "afd53e15"
+  ],
+  "child_hashes": [
+    "61d07327",
+    "56bc16f8",
+    "7e84a609"
+  ],
+  "actions": [
+    {
+      "mode": "stand",
+      "path": [
+        "bd701184",
+        "18e67533",
+        "840a9c18",
+        "bcacd642",
+        "afd53e15",
+        "61d07327",
+        "56080aec"
+      ],
+      "clips": [
+        "nor_rfl_stn_rpd_upp_aim",
+        "nor_rfl_stn_rpd_mid_aim",
+        "nor_rfl_stn_rpd_dwn_aim",
+        "nor_rfl_stn_hld_mid_fir"
+      ]
+    },
+    {
+      "mode": "walk",
+      "path": [
+        "bd701184",
+        "18e67533",
+        "840a9c18",
+        "bcacd642",
+        "afd53e15",
+        "56bc16f8"
+      ],
+      "clips": [
+        "nor_rfl_wlk_rpd_upp_aim",
+        "nor_rfl_wlk_rpd_mid_aim",
+        "nor_rfl_wlk_rpd_dwn_aim",
+        "nor_rfl_rdy_wlk_mid_fir"
+      ]
+    },
+    {
+      "mode": "run",
+      "path": [
+        "bd701184",
+        "18e67533",
+        "840a9c18",
+        "bcacd642",
+        "afd53e15",
+        "7e84a609"
+      ],
+      "clips": [
+        "nor_rfl_run_rpd_upp_aim",
+        "nor_rfl_run_rpd_mid_aim",
+        "nor_rfl_run_rpd_dwn_aim",
+        "nor_rfl_180_run_hld_fir"
+      ]
+    }
+  ]
+}

@@ -56,6 +56,7 @@ class LongarmTests(m.GuardTests):
   gun=add('gun',0x18e67533,base_node);rifle=add('rifle',0x840a9c18,gun)
   de=add('standing_de',0xbcacd642,rifle);middle=add('middle',0xafd53e15,de)
   v.target=add('standing',0x61d07327,middle)
+  add('rapid_walk',0x56bc16f8,middle);add('rapid_run',0x7e84a609,middle)
   # Normal shoulder/hold has the same leaf name but MUST NOT be selected.
   normal=add('normal',0x0139c40d,rifle);add('normal_standing',0x61d07327,normal)
   motion=add('motion',0xf6ad55f0,base_node);mr=add('motion_rifle',0x840a9c18,motion);md=add('motion_de',0x122ac9f4,mr)
@@ -64,9 +65,9 @@ class LongarmTests(m.GuardTests):
   add('crouched',0x61d07327,cd);add('crouched_moving',0x7e84a609,cd)
   leafvt=v.game+0x1cbf520
   v.q(leafvt+8,v.game+0x219640);v.q(leafvt+0x58,v.game+0x585e60);v.q(leafvt+0x60,v.game+0x585e70);v.q(leafvt+0x88,v.game+0x588190)
-  for name in ['standing','moving','crouched','crouched_moving']:v.q(v.nodes[name],leafvt)
+  for name in ['standing','rapid_walk','rapid_run','moving','crouched','crouched_moving']:v.q(v.nodes[name],leafvt)
   v.leafvt=leafvt
-  v.expected=v.nodes['standing'] if k<2 else 0
+  v.expected=v.nodes['standing'] if k==0 else v.nodes['middle'] if k==1 else 0
   return v
  def path(self,v,k):
   rv=[0x202c0,0x201b8,0x20200,0x20260][k];text=bytes(p.get_data(rv,256)).split(b'\0')[0]
@@ -144,9 +145,37 @@ class LongarmTests(m.GuardTests):
   v=self.fixture()
   for k in [0,1,1,0]:
    ptr,_=self.path(v,k);self.assertEqual(self.call(v,'select_node',42,ptr),1)
-   self.assertEqual(v.selected,v.nodes['standing'])
+   self.assertEqual(v.selected,v.nodes['standing' if k==0 else 'middle'])
    self.assertEqual(self.call(v,'rapid_pose',42,k&1,k>=2)&255,1)
+   v.i(v.base+0xf7cc,42);v.i(v.base+0x24080,k);v.b(v.base+0x2407e,1)
   self.assertEqual(v.geti(v.shared+0x20),2)
+ def test_locomotion_family_accepts_authored_children_without_reentering(self):
+  v=self.fixture(k=1);ptr,_=self.path(v,1)
+  self.assertEqual(self.call(v,'select_node',42,ptr),1)
+  self.assertEqual(v.selected,v.nodes['middle'])
+  for name in ['rapid_walk','rapid_run','standing']:
+   v.q(v.ctrl+0xb0,v.nodes[name]);self.assertEqual(self.call(v,'rapid_pose',42,1,0)&255,1)
+   v.i(v.base+0xf7cc,42);v.i(v.base+0x24080,1);v.b(v.base+0x2407e,1)
+   before=len(v.native_calls);self.assertEqual(self.call(v,'select_node',42,ptr),1)
+   self.assertEqual(len(v.native_calls),before)
+ def test_real_composite_selector_evaluates_stand_walk_run_conditions(self):
+  for wanted in ['standing','rapid_walk','rapid_run',None]:
+   v=self.fixture(k=1);v.u.mem_write(v.game+0x588060,game.get_data(0x588060,0x129))
+   del v.callbacks[v.game+0x588060]
+   for name in ['standing','rapid_walk','rapid_run']:v.b(v.nodes[name]+0x2f,4)
+   v.u.mem_write(v.nodes['middle']+0x48,struct.pack('<H',0))
+   def condition():
+    candidate=v.u.reg_read(UC_X86_REG_RCX)-0x40
+    return int(wanted is not None and candidate==v.nodes[wanted])
+   v.callbacks[v.game+0x594360]=condition
+   end=0x5000f000;v.q(v.frame-8,end);v.u.reg_write(UC_X86_REG_RSP,v.frame-8)
+   v.u.reg_write(UC_X86_REG_RCX,v.nodes['middle']);v.u.reg_write(UC_X86_REG_RDX,v.ctrl+0x5e0)
+   v.u.emu_start(v.game+0x588060,end,count=10000)
+   self.assertEqual(v.u.reg_read(UC_X86_REG_RAX),v.nodes[wanted] if wanted else 0)
+ def test_incomplete_locomotion_family_is_refused(self):
+  for name in ['standing','rapid_walk','rapid_run']:
+   v=self.fixture(k=1);v.i(v.nodes[name]+0x38,0x1234);ptr,_=self.path(v,1)
+   self.assertEqual(self.call(v,'select_node',42,ptr),0);self.assertEqual(v.native_calls,[])
  def test_real_autoreload_request_with_new_weapon_bookkeeping(self):
   for w in range(8,21):
    v=self.vm();v.i(v.base+0xf7cc,-1);v.f(v.frame+0x828,0)
@@ -187,12 +216,17 @@ class LongarmTests(m.GuardTests):
   for w in [4,9,13,15,17]:
    v=self.fixture(w,2);v.real_cover=3
    self.assertEqual(self.call(v,'should_passthrough',42),3)
- def test_walking_uses_same_hip_node_without_restarting_existing_animation(self):
+ def test_standing_to_walking_switches_family_then_retains_active_walk(self):
   v=self.fixture();ptr,_=self.path(v,0);self.call(v,'select_node',42,ptr)
   self.assertEqual(len([c for c in v.native_calls if c[0]=='create']),1)
   descendant=v.add('fire_descendant',0x12345678,v.target);v.q(v.ctrl+0xb0,descendant)
   ptr,_=self.path(v,1);self.assertEqual(self.call(v,'select_node',42,ptr),1)
-  self.assertEqual(len([c for c in v.native_calls if c[0]=='create']),1)
+  self.assertEqual(v.selected,v.nodes['middle'])
+  self.assertEqual(len([c for c in v.native_calls if c[0]=='create']),2)
+  v.i(v.base+0xf7cc,42);v.i(v.base+0x24080,1);v.b(v.base+0x2407e,1)
+  v.q(v.ctrl+0xb0,v.nodes['rapid_walk'])
+  self.assertEqual(self.call(v,'select_node',42,ptr),1)
+  self.assertEqual(len([c for c in v.native_calls if c[0]=='create']),2)
   self.assertEqual(self.call(v,'rapid_pose',42,1,0)&255,1)
  def test_actual_crouch_passthrough_clears_queue_releases_goals_and_restores_fire(self):
   for k in [2,3]:
@@ -234,7 +268,7 @@ class LongarmTests(m.GuardTests):
  def test_reproduced_goal_replacement_is_repaired_only_after_initial_aim(self):
   old=pefile.PE('/workspace/hipfire-longarms4/output/HipfireRDR1.red').get_memory_mapped_image()
   before=self.goal_replacement_start(old);self.assertEqual(before.getq(before.ctrl+0xb0),before.nodes['normal_standing'])
-  v=self.goal_replacement_start();self.assertEqual(v.getq(v.ctrl+0xb0),v.target)
+  v=self.goal_replacement_start();self.assertEqual(v.getq(v.ctrl+0xb0),v.nodes['middle'])
   self.assertEqual(self.call(v,'rapid_pose',42,1,0)&255,1)
   calls=len(v.native_calls);self.call(v,'longarm_aim',42,v.frame+0x110)
   self.assertEqual(v.aim_count,2);self.assertEqual(len(v.native_calls),calls)

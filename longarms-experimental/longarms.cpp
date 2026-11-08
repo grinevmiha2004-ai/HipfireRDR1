@@ -68,8 +68,13 @@ static Q resolve(U k,Q owner,ResolveInfo& info){
  }
  if(!base){info.stage=1;return 0;}
  if(k<2){
-  // Exact chain captured during the native Winchester Dead Eye shot.
-  Q target=child(child(child(child(child(base,0x18e67533U),0x840a9c18U),0xbcacd642U),0xafd53e15U),0x61d07327U);
+  // act.rpf/default_character.wat: this composite owns the standing,
+  // walking (56BC16F8) and running (7E84A609) rapid-fire actions.
+  // In locomotion let the authored child conditions select the action;
+  // forcing RifleHoldStand bypassed those conditions and never fired.
+  Q family=child(child(child(child(base,0x18e67533U),0x840a9c18U),0xbcacd642U),0xafd53e15U);
+  Q target=k==0?child(family,0x61d07327U):family;
+  if(k==1&&(!child(family,0x61d07327U)||!child(family,0x56bc16f8U)||!child(family,0x7e84a609U)))target=0;
   info.stage=target?0:2;info.matches=target?1:0;return target;
  }
  info.stage=3;return 0;
@@ -118,7 +123,7 @@ extern "C" int MS select_node(int actor,const char* path){
  Q create=ptr(n.vt+0x88);
  if(!((n.vt==game_image+0x1cbf468&&create==game_image+0x588060)||(n.vt==game_image+0x1cbf520&&create==game_image+0x588190)))return 0;
  bool same=false;
- if(owned_actor==actor&&owned_expanded&&owned_kind>=0&&owned_kind<2){
+ if(owned_actor==actor&&owned_expanded&&owned_kind==k){
   Q current=ptr(controller+0xb0);
   for(U depth=0;current&&depth<24;++depth){Node x{};if(!node(current,x))break;if(current==target){same=true;break;}if(x.parent==current)break;current=x.parent;}
  }
