@@ -3,18 +3,22 @@ using U=unsigned;using Q=unsigned long long;using B=unsigned char;
 extern "C" {
 int MS original_select(int,const char*);int MS original_playing(int,const char*);
 int MS original_weapon(int);bool MS original_rapid(U,bool,bool);
-Q MS actor_from(Q,U);Q MS read_pointer(Q);bool MS read_byte(Q,B*);
+Q MS actor_from(Q,U);Q MS read_pointer(Q);
 extern Q game_image,iat_rpm;
 void MS log_event(const char*,...);
+bool MS select_resolved(Q,Q);
 }
+using RPM=int(MS*)(void*,const void*,void*,Q,Q*);
+static bool read(Q p,void* out,Q n){Q got=0;return p>=0x10000&&p<0x0000800000000000ULL-n&&reinterpret_cast<RPM>(iat_rpm)(reinterpret_cast<void*>(-1LL),reinterpret_cast<const void*>(p),out,n,&got)&&got==n;}
+template<class T>T value(Q p){T result{};read(p,&result,sizeof(result));return result;}
+static Q ptr(Q p){return value<Q>(p);}
 static bool eq(const char* a,const char* b){if(!a||!b)return false;while(*a&&*a==*b){++a;++b;}return *a==*b;}
-static bool has(const char* s,const char* n){for(;*s;++s){const char* a=s;const char* b=n;while(*a&&*a==*b){++a;++b;}if(!*b)return true;}return false;}
-static bool longarm(int w){return w>=8&&w<=20;}
-struct Choice {int actor=-1,weapon=-1;const char* paths[4]{};U refused=0;};
+static bool rifle(int w){return w>=8&&w<=20&&w!=15;} // Capture: sawed-off uses Pistol/DeadEye.
+struct Choice {int actor=-1,weapon=-1;Q nodes[4]{};U refused=0;};
 Choice choice;
 static int weapon(int actor){
  int w=original_weapon(actor);
- if(w>=0){if(choice.actor!=actor||choice.weapon!=w){choice.actor=actor;choice.weapon=w;for(auto& p:choice.paths)p=nullptr;choice.refused=0;}return w;}
+ if(w>=0){if(choice.actor!=actor||choice.weapon!=w){choice.actor=actor;choice.weapon=w;for(auto& p:choice.nodes)p=0;choice.refused=0;}return w;}
  return w==-1&&choice.actor==actor?choice.weapon:-1;
 }
 static int kind(const char* path){
@@ -24,80 +28,108 @@ static int kind(const char* path){
  if(eq(path,"default_character_Main\\l8x7gpa\\Crouch\\t175e2a\\CrouchPistol\\PistolAim\\DeadEye\\PistolHoldRun"))return 3;
  return -1;
 }
-// Candidate names must be accepted by SET_ACTION_NODE_FOR_ACTOR in the
-// loaded game action tree. Their existence cannot be proven from RDR.exe.
-static const char* candidate_path(int family,int k){
- if(family==0){switch(k){
- case 0:return "default_character_Main\\Gunplay\\Rifle\\DeadEye\\RifleHoldStand";
- case 1:return "default_character_Main\\tcwtnjb\\Rifle\\RifleAim\\DeadEye\\RifleHoldRun";
- case 2:return "default_character_Main\\l8x7gpa\\Crouch\\t175e2a\\CrouchRifle\\RifleAim\\DeadEye\\RifleHoldStand";
- case 3:return "default_character_Main\\l8x7gpa\\Crouch\\t175e2a\\CrouchRifle\\RifleAim\\DeadEye\\RifleHoldRun";
- }}
- else if(family==1){switch(k){
- case 0:return "default_character_Main\\Gunplay\\Shotgun\\DeadEye\\ShotgunHoldStand";
- case 1:return "default_character_Main\\tcwtnjb\\Shotgun\\ShotgunAim\\DeadEye\\ShotgunHoldRun";
- case 2:return "default_character_Main\\l8x7gpa\\Crouch\\t175e2a\\CrouchShotgun\\ShotgunAim\\DeadEye\\ShotgunHoldStand";
- case 3:return "default_character_Main\\l8x7gpa\\Crouch\\t175e2a\\CrouchShotgun\\ShotgunAim\\DeadEye\\ShotgunHoldRun";
- }}
- else if(family==2){switch(k){
- case 0:return "default_character_Main\\Gunplay\\LongArm\\DeadEye\\LongArmHoldStand";
- case 1:return "default_character_Main\\tcwtnjb\\LongArm\\LongArmAim\\DeadEye\\LongArmHoldRun";
- case 2:return "default_character_Main\\l8x7gpa\\Crouch\\t175e2a\\CrouchLongArm\\LongArmAim\\DeadEye\\LongArmHoldStand";
- case 3:return "default_character_Main\\l8x7gpa\\Crouch\\t175e2a\\CrouchLongArm\\LongArmAim\\DeadEye\\LongArmHoldRun";
- }}
- return nullptr;
+struct Node {Q vt,parent,children;unsigned short count,capacity;U unknown;Q type,flags,name;U hash,tail;};
+static_assert(sizeof(Node)==64);
+static bool node(Q p,Node& out){
+ if(!read(p,&out,sizeof(out))||out.vt<game_image+0x1040000||out.vt>=game_image+0x2000000||out.count>2048||out.count>out.capacity)return false;
+ // Layout and these three inherited pure getters were recorded in the
+ // user's loaded WAT. Read the objects; do not invoke virtual getters.
+ return ptr(out.vt+8)==game_image+0x219640&&ptr(out.vt+0x58)==game_image+0x585e60&&ptr(out.vt+0x60)==game_image+0x585e70;
+}
+static Q child(Q p,U hash){
+ Node n{};if(!node(p,n))return 0;
+ for(U i=0;i<n.count;++i){Q c=ptr(n.children+i*8ULL);Node x{};if(node(c,x)&&x.parent==p&&x.hash==hash)return c;}
+ return 0;
+}
+static Q find(Q p,Q parent,U hash,bool deadeye,U depth,U& budget,Q& found,U& matches){
+ if(!budget||depth>20)return 0;
+ --budget;Node n{};if(!node(p,n)||n.parent!=parent)return 0;
+ deadeye=deadeye||n.hash==0xbcacd642U||n.hash==0x122ac9f4U; // RifleDeadEye / DeadEye
+ if(n.hash==hash&&deadeye){found=p;++matches;return p;}
+ for(U i=0;i<n.count&&budget&&matches<2;++i)find(ptr(n.children+i*8ULL),p,hash,deadeye,depth+1,budget,found,matches);
+ return found;
+}
+static Q resolve(U k){
+ Q global=ptr(game_image+0x2ab5e78);Node root{};
+ if(!node(global,root)||root.hash!=0xdb982272U)return 0;
+ Q base=child(global,0xbd701184U); // default_character_Main
+ if(!base)return 0;
+ // Keep the same verified motion/crouch roots used by the handgun paths.
+ Q scope=k==0?child(child(base,0x18e67533U),0x840a9c18U):k==1?child(base,0xf6ad55f0U):child(child(base,0x892a3c35U),0x2751a740U);
+ // Motion root hashes match the exact aliases in the original mod.
+ if(!scope)return 0;
+ Node scope_node{};if(!node(scope,scope_node))return 0;
+ U budget=4096,matches=0;Q found=0;
+ find(scope,scope_node.parent,(k&1)?0x7e84a609U:0x61d07327U,false,0,budget,found,matches);
+ if(matches!=1||!budget)return 0;
+ return found;
+}
+static bool signature(){
+ // Build-specific bodies used by the native action-node selector, and
+ // read-only methods which establish the WAT object layout.
+ extern const B selector_signature[];extern const U selector_size;
+ const B prologue[]={0x40,0x57,0x48,0x81,0xec,0x70,0x01,0,0};B pro[9]{};
+ if(!read(game_image+0xcdfa20,pro,9))return false;
+ for(U i=0;i<9;++i)if(pro[i]!=prologue[i])return false;
+ B code[160]{};if(selector_size>sizeof(code)||!read(game_image+0xcdfa7a,code,selector_size))return false;
+ for(U i=0;i<selector_size;++i)if(code[i]!=selector_signature[i])return false;
+ const B getter[]={0x48,0x8d,0x41,0x30,0xc3};B a[5]{};
+ if(!read(game_image+0x219640,a,5))return false;
+ for(U i=0;i<5;++i)if(a[i]!=getter[i])return false;
+ const B count[]={0x0f,0xb7,0x41,0x18,0xc3};
+ if(!read(game_image+0x585e60,a,5))return false;
+ for(U i=0;i<5;++i)if(a[i]!=count[i])return false;
+ const B children[]={0x48,0x8b,0x41,0x10,0x8b,0xd2,0x48,0x8b,0x04,0xd0,0xc3};B c[11]{};
+ if(!read(game_image+0x585e70,c,11))return false;
+ for(U i=0;i<11;++i)if(c[i]!=children[i])return false;
+ return true;
+}
+static Q owner_for(int actor){
+ Q owner=actor_from(game_image,static_cast<U>(actor));Q character=owner?ptr(owner+0x38):0;
+ Q player=ptr(game_image+0x22cbf00);
+ if(!owner||!character||!player||ptr(character+0x10)!=owner||value<U>(owner+8)!=value<U>(player+0x5ec))return 0;
+ return owner;
 }
 extern "C" int MS select_node(int actor,const char* path){
- const int k=kind(path);
- if(k<0)return original_select(actor,path); // includes the root release node
- const int w=weapon(actor);
- if(!longarm(w))return original_select(actor,path);
- if(choice.paths[k])return original_select(actor,choice.paths[k]);
- const int first=w>=15&&w<=18?1:0;
- const int order[]={first,1-first,2};
- for(int family:order){
-  const char* candidate=candidate_path(family,k);
-  if(original_select(actor,candidate)){
-   choice.paths[k]=candidate;
-   log_event("longarm_node ready actor=%d weapon=%d kind=%d path=%s",actor,w,k,candidate);return 1;
-  }
+ int k=kind(path);if(k<0)return original_select(actor,path);
+ int w=weapon(actor);
+ if(!rifle(w)){int result=original_select(actor,path);if(w==15&&result)log_event("longarm_route actor=%d weapon=15 kind=%d family=pistol",actor,k);return result;}
+ if(!signature()){log_event("longarm_resolve refused: executable signature mismatch");return 0;}
+ Q owner=owner_for(actor),controller=owner?ptr(owner+0xb0):0;
+ if(!owner||!controller)return 0;
+ // Resolve against the current tree on each pose selection: no stale
+ // pointers across tree unloads or actor changes, no guessed path strings.
+ Q target=resolve(static_cast<U>(k));Node n{};
+ if(!target||!node(target,n)){
+  if(!(choice.refused&(1U<<k))){choice.refused|=1U<<k;log_event("longarm_resolve unavailable actor=%d weapon=%d kind=%d",actor,w,k);}
+  choice.nodes[k]=0;return 0;
  }
- if(!(choice.refused&(1U<<k))){choice.refused|=1U<<k;log_event("longarm_node unavailable actor=%d weapon=%d kind=%d; action tree capture required",actor,w,k);}
- return 0; // Never substitute a pistol pose or a normal shoulder aim.
+ // Native selector reads this slot and invokes +0x88 on the resolved node.
+ Q create=ptr(n.vt+0x88);
+ if(!((n.vt==game_image+0x1cbf468&&create==game_image+0x588060)||(n.vt==game_image+0x1cbf520&&create==game_image+0x588190)))return 0;
+ if(!select_resolved(owner,target)){choice.nodes[k]=0;return 0;}
+ choice.nodes[k]=target;
+ log_event("longarm_resolve ready actor=%d weapon=%d kind=%d node_hash=%08x",actor,w,k,n.hash);return 1;
 }
-extern "C" int MS playing_node(int actor,const char* path){
- const int k=kind(path);if(k<0)return original_playing(actor,path);
- const int w=weapon(actor);if(!longarm(w))return original_playing(actor,path);
- return choice.paths[k]?original_playing(actor,choice.paths[k]):0;
-}
-using RPM=int(MS*)(void*,const void*,void*,Q,Q*);
-static bool read(Q p,void* out,Q n){Q got=0;return p>=0x10000&&p<0x0000800000000000ULL-n&&reinterpret_cast<RPM>(iat_rpm)(reinterpret_cast<void*>(-1LL),reinterpret_cast<const void*>(p),out,n,&got)&&got==n;}
-extern "C" bool MS clip_matches(const char* name,bool moving,bool crouched){
- if(!name)return false;
- if(!(has(name,"_rfl_")||has(name,"_rif_")||has(name,"_rpt_")||has(name,"_sht_")||has(name,"_sgn_")))return false;
- if(!(has(name,"_rpd_")||has(name,"_hip_")))return false;
- if((has(name,"_crc_")||has(name,"_crch_"))!=crouched)return false;
- if(!moving)return has(name,"_stn_");
- return has(name,"_run_")||(has(name,"_stn_")&&(crouched||has(name,"_fir")));
-}
-extern "C" bool MS rapid_pose(U actor,bool moving,bool crouched){
- if(!longarm(weapon(static_cast<int>(actor))))return original_rapid(actor,moving,crouched);
- const U k=(moving?1:0)+(crouched?2:0);
- // Only accept a track after this actor/weapon's requested node was accepted.
- if(!choice.paths[k])return false;
- if(original_playing(static_cast<int>(actor),choice.paths[k]))return true;
- Q owner=actor_from(game_image,actor);Q character=owner?read_pointer(owner+0x38):0;
- if(!character)return false;
- const U slots[]={0x530U,0x538U};
- for(U slot:slots){
-  Q wrapper=read_pointer(character+slot),inner=wrapper?read_pointer(wrapper+0x10):0;B type=0;
-  if(!inner||!read_byte(inner+0xa,&type)||type!=0xf)continue;
-  Q clip=read_pointer(inner+0x50),name=clip?read_pointer(clip+0x10):0;
-  char text[112]{};if(!name)continue;
-  // Bounded individual reads tolerate names near inaccessible pages.
-  bool complete=false;
-  for(U j=0;j<sizeof(text);++j){B c=0;if(!read(name+j,&c,1))break;text[j]=static_cast<char>(c);if(!c){complete=true;break;}}
-  if(complete&&clip_matches(text,moving,crouched))return true;
+static bool active(int actor,U k){
+ Q expected=choice.nodes[k];if(!expected)return false;
+ Node target{};if(!node(expected,target))return false;
+ Q owner=owner_for(actor),controller=owner?ptr(owner+0xb0):0;
+ Q current=controller?ptr(controller+0xb0):0;
+ for(U depth=0;current&&depth<24;++depth){
+  Node x{};if(!node(current,x))return false;
+  if(current==expected)return true;
+  if(x.parent==current)return false;
+  current=x.parent;
  }
  return false;
 }
+extern "C" int MS playing_node(int actor,const char* path){
+ int k=kind(path);if(k<0)return original_playing(actor,path);
+ return rifle(weapon(actor))?active(actor,static_cast<U>(k)):original_playing(actor,path);
+}
+extern "C" bool MS rapid_pose(U actor,bool moving,bool crouched){
+ if(!rifle(weapon(static_cast<int>(actor))))return original_rapid(actor,moving,crouched);
+ return active(static_cast<int>(actor),(moving?1U:0U)+(crouched?2U:0U));
+}
+#include "signature.hpp"

@@ -4,7 +4,7 @@ sys.path.insert(0,'/workspace/hipfire-reload/python-deps')
 import pefile,capstone
 R=Path(__file__).parent
 flags=['g++','-std=c++17','-O2','-Wall','-Wextra','-Werror','-fpie','-ffreestanding','-fno-exceptions','-fno-rtti','-fno-stack-protector','-fno-jump-tables','-fno-tree-switch-conversion','-fasynchronous-unwind-tables','-fno-shrink-wrap','-fno-shrink-wrap-separate','-mabi=ms','-mno-red-zone','-maccumulate-outgoing-args']
-for cmd in [flags+['-c','longarms.cpp','-o','longarms.o'],['ld','-T','longarms.ld','longarms.o','-o','longarms.elf']]:subprocess.run(cmd,cwd=R,check=True)
+for cmd in [flags+['-c','longarms.cpp','-o','longarms.o'],['as','--64','select.S','-o','select.o'],['ld','-T','longarms.ld','longarms.o','select.o','-o','longarms.elf']]:subprocess.run(cmd,cwd=R,check=True)
 for sec,name in [('.text','code'),('.data','data')]:subprocess.run(['objcopy','-O','binary','--only-section='+sec,'longarms.elf',name+'.bin'],cwd=R,check=True)
 # No loader relocations or external data addresses are allowed in the extension.
 assert 'R_X86_64' not in subprocess.check_output(['readelf','-r','longarms.elf'],cwd=R,text=True)
@@ -28,10 +28,11 @@ for e in p.DIRECTORY_ENTRY_EXCEPTION:
    patch(i.address+1,i.bytes[1:],struct.pack('<i',syms[redirect[dest]][0]-i.address-5),redirect[dest]);counts[dest]+=1
 assert all(counts.values())
 code=bytearray((R/'code.bin').read_bytes());code_rva=0x68000
+function_names={l.split()[3] for l in subprocess.check_output(['nm','-S','--defined-only','longarms.elf'],cwd=R,text=True).splitlines() if len(l.split())==4 and l.split()[2].lower()=='t'}
 entries=[];regs={'rbx':3,'rbp':5,'rsi':6,'rdi':7,'r12':12,'r13':13,'r14':14,'r15':15}
 # Unwind info for every compiled function; no bridge or existing prologue is altered.
 for name,(start,size) in syms.items():
- if not(code_rva<=start<code_rva+len((R/'code.bin').read_bytes())):continue
+ if name not in function_names or not(code_rva<=start<code_rva+len((R/'code.bin').read_bytes())):continue
  ops=[];prolog=0
  for i in cs.disasm(bytes(code[start-code_rva:start-code_rva+80]),start):
   off=i.address+i.size-start
@@ -49,7 +50,7 @@ while len(code)%4:code.append(0)
 table=code_rva+len(code)
 all_entries=sorted([(e.struct.BeginAddress,e.struct.EndAddress,e.struct.UnwindData) for e in p.DIRECTORY_ENTRY_EXCEPTION]+entries)
 code+=b''.join(struct.pack('<III',*e) for e in all_entries)
-data_rva=syms['choice'][0];assert data_rva==(code_rva+len(code)+4095)//4096*4096,(hex(data_rva),len(code))
+data_rva=syms['choice'][0];assert len(code)<=data_rva-code_rva;code+=b'\0'*(data_rva-code_rva-len(code))
 # .data contains only zero-initialized cache / -1 handles, never static pointers.
 data=(R/'data.bin').read_bytes();assert len(data)<=64
 align=lambda n,a:(n+a-1)//a*a

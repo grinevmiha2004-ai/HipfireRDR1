@@ -1,0 +1,35 @@
+{
+  "winchester_native_execution": {
+    "tree": "default_character_Main",
+    "branch": "Gunplay/Rifle/RifleDeadEye",
+    "intermediate_component_hash": "afd53e15",
+    "leaf": "RifleHoldStand",
+    "path_hashes": [
+      "db982272",
+      "bd701184",
+      "18e67533",
+      "840a9c18",
+      "bcacd642",
+      "afd53e15",
+      "61d07327"
+    ],
+    "requested_tracks": [
+      "nor_rfl_stn_rpd_upp_aim",
+      "nor_rfl_stn_rpd_mid_aim",
+      "nor_rfl_stn_rpd_dwn_aim",
+      "nor_rfl_stn_hld_mid_fir"
+    ]
+  },
+  "sawedoff_reported_by_user": {
+    "native_execution_path": "default_character_Main/Gunplay/Pistol/DeadEye/PistolHoldStand",
+    "path_hashes": [
+      "db982272",
+      "bd701184",
+      "18e67533",
+      "797ef586",
+      "122ac9f4",
+      "597786c3"
+    ]
+  },
+  "limits": "Track capture ended before the second weapon; its node chain is present in the separate action-node log. Moving/crouch rifle branches were not captured; resolver searches the corresponding existing pose subtree and refuses absent or ambiguous matches."
+}

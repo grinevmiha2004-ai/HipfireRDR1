@@ -1,4 +1,4 @@
-SECTIONS { . = 0x68000; .text : { *(.text*) *(.rodata*) } . = ALIGN(0x1000); .data : { *(.data*) *(.bss*) BYTE(0) } /DISCARD/ : { *(.eh_frame*) *(.comment*) *(.note*) } }
+SECTIONS { . = 0x68000; .text : { *(.text*) *(.rodata*) } . = 0x6b000; .data : { *(.data*) *(.bss*) BYTE(0) } /DISCARD/ : { *(.eh_frame*) *(.comment*) *(.note*) } }
 original_select = 0xd730;
 original_playing = 0xd7f0;
 original_weapon = 0xd870;
