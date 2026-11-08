@@ -26,19 +26,19 @@
   {
     "rva": "0x261d",
     "before": "cfb10000",
-    "after": "6f690600",
+    "after": "ef6b0600",
     "reason": "playing_node"
   },
   {
     "rva": "0x2656",
     "before": "16b40000",
-    "after": "96690600",
+    "after": "166c0600",
     "reason": "rapid_pose"
   },
   {
     "rva": "0x2805",
     "before": "e7af0000",
-    "after": "87670600",
+    "after": "076a0600",
     "reason": "playing_node"
   },
   {
@@ -50,7 +50,7 @@
   {
     "rva": "0x4a24",
     "before": "48900000",
-    "after": "c8450600",
+    "after": "48480600",
     "reason": "rapid_pose"
   },
   {
@@ -62,7 +62,7 @@
   {
     "rva": "0x593c",
     "before": "30810000",
-    "after": "b0360600",
+    "after": "30390600",
     "reason": "rapid_pose"
   },
   {

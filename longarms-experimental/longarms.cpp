@@ -49,19 +49,41 @@ static Q find(Q p,Q parent,U hash,bool deadeye,U depth,U& budget,Q& found,U& mat
  for(U i=0;i<n.count&&budget&&matches<2;++i)find(ptr(n.children+i*8ULL),p,hash,deadeye,depth+1,budget,found,matches);
  return found;
 }
-static Q resolve(U k){
- Q global=ptr(game_image+0x2ab5e78);Node root{};
- if(!node(global,root)||root.hash!=0xdb982272U)return 0;
- Q base=child(global,0xbd701184U); // default_character_Main
- if(!base)return 0;
- // Keep the same verified motion/crouch roots used by the handgun paths.
- Q scope=k==0?child(child(base,0x18e67533U),0x840a9c18U):k==1?child(base,0xf6ad55f0U):child(child(base,0x892a3c35U),0x2751a740U);
- // Motion root hashes match the exact aliases in the original mod.
- if(!scope)return 0;
- Node scope_node{};if(!node(scope,scope_node))return 0;
+struct ResolveInfo {U stage=0,root_hash=0,matches=0;};
+static Q resolve(U k,Q owner,ResolveInfo& info){
+ Q base=ptr(game_image+0x2ab5e78);Node root{};
+ // Native lookup at 5874C0 skips the initial path component and starts
+ // at the current tree namespace, normally default_character_Main itself.
+ // Experimental 02 incorrectly required this pointer to name Global.
+ if(node(base,root)){
+  info.root_hash=root.hash;
+  if(root.hash==0xdb982272U)base=child(base,0xbd701184U);
+  else if(root.hash!=0xbd701184U)base=0;
+ }else base=0;
+ if(!base){
+  // The captured local actor chain provides another verified route to
+  // its own tree root when the global namespace is temporarily unavailable.
+  Q controller=ptr(owner+0xb0),current=controller?ptr(controller+0xb0):0;
+  for(U depth=0;current&&depth<24;++depth){
+   Node n{};if(!node(current,n))break;
+   if(n.hash==0xbd701184U){base=current;info.root_hash=n.hash;break;}
+   if(n.parent==current)break;
+   current=n.parent;
+  }
+ }
+ if(!base){info.stage=1;return 0;}
+ if(k==0){
+  // Exact chain captured during the native Winchester Dead Eye shot.
+  Q target=child(child(child(child(child(base,0x18e67533U),0x840a9c18U),0xbcacd642U),0xafd53e15U),0x61d07327U);
+  info.stage=target?0:2;info.matches=target?1:0;return target;
+ }
+ Q scope=k==1?child(base,0xf6ad55f0U):child(child(base,0x892a3c35U),0x2751a740U);
+ if(!scope){info.stage=3;return 0;}
+ Node scope_node{};if(!node(scope,scope_node)){info.stage=4;return 0;}
  U budget=4096,matches=0;Q found=0;
  find(scope,scope_node.parent,(k&1)?0x7e84a609U:0x61d07327U,false,0,budget,found,matches);
- if(matches!=1||!budget)return 0;
+ info.matches=matches;
+ if(matches!=1||!budget){info.stage=5;return 0;}
  return found;
 }
 static bool signature(){
@@ -99,9 +121,9 @@ extern "C" int MS select_node(int actor,const char* path){
  if(!owner||!controller)return 0;
  // Resolve against the current tree on each pose selection: no stale
  // pointers across tree unloads or actor changes, no guessed path strings.
- Q target=resolve(static_cast<U>(k));Node n{};
+ ResolveInfo info{};Q target=resolve(static_cast<U>(k),owner,info);Node n{};
  if(!target||!node(target,n)){
-  if(!(choice.refused&(1U<<k))){choice.refused|=1U<<k;log_event("longarm_resolve unavailable actor=%d weapon=%d kind=%d",actor,w,k);}
+  if(!(choice.refused&(1U<<k))){choice.refused|=1U<<k;log_event("longarm_resolve unavailable actor=%d weapon=%d kind=%d stage=%u root_hash=%08x matches=%u",actor,w,k,info.stage,info.root_hash,info.matches);}
   choice.nodes[k]=0;return 0;
  }
  // Native selector reads this slot and invokes +0x88 on the resolved node.

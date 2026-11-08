@@ -23,9 +23,12 @@ test_cancel_and_new_series_do_not_reuse_old_birth_time (__main__.LongarmTests.te
 test_cancelled_controls_and_heartbeat (__main__.LongarmTests.test_cancelled_controls_and_heartbeat) ... ok
 test_child_descendant_active_without_guessing_clip_names (__main__.LongarmTests.test_child_descendant_active_without_guessing_clip_names) ... ok
 test_empty_or_expired_hold_clears_guard (__main__.LongarmTests.test_empty_or_expired_hold_clears_guard) ... ok
+test_experimental02_failure_reproduced_on_correct_namespace (__main__.LongarmTests.test_experimental02_failure_reproduced_on_correct_namespace) ... ok
 test_final_pe_and_original_sections (__main__.LongarmTests.test_final_pe_and_original_sections) ... ok
+test_global_container_and_actor_chain_are_supported_as_root_fallbacks (__main__.LongarmTests.test_global_container_and_actor_chain_are_supported_as_root_fallbacks) ... ok
 test_missing_crouch_and_ambiguous_tree_refuse_without_standing_fallback (__main__.LongarmTests.test_missing_crouch_and_ambiguous_tree_refuse_without_standing_fallback) ... ok
 test_mode_changes_within_existing_series (__main__.LongarmTests.test_mode_changes_within_existing_series) ... ok
+test_native_lookup_confirms_namespace_skips_initial_component (__main__.LongarmTests.test_native_lookup_confirms_namespace_skips_initial_component) ... ok
 test_native_selector_preserves_reference_count_and_nonvolatile_registers (__main__.LongarmTests.test_native_selector_preserves_reference_count_and_nonvolatile_registers) ... ok
 test_original_positive_result_preserved (__main__.LongarmTests.test_original_positive_result_preserved) ... ok
 test_original_release_root_and_native_create_failure (__main__.LongarmTests.test_original_release_root_and_native_create_failure) ... ok
@@ -40,6 +43,7 @@ test_signature_or_existing_hook_not_overwritten (__main__.LongarmTests.test_sign
 test_slow_individual_clicks_do_not_expire_fresh_intent (__main__.LongarmTests.test_slow_individual_clicks_do_not_expire_fresh_intent) ... ok
 test_standing_fifo_preserved_for_same_timing (__main__.LongarmTests.test_standing_fifo_preserved_for_same_timing) ... ok
 test_standing_interval_restored_after_confirmation (__main__.LongarmTests.test_standing_interval_restored_after_confirmation) ... ok
+test_standing_resolves_exact_recorded_path_despite_other_deadeye_variants (__main__.LongarmTests.test_standing_resolves_exact_recorded_path_despite_other_deadeye_variants) ... ok
 test_tampered_engine_code_layout_tree_and_nonlocal_actor_refuse (__main__.LongarmTests.test_tampered_engine_code_layout_tree_and_nonlocal_actor_refuse) ... ok
 test_transitions_between_four_poses_retain_correct_active_node (__main__.LongarmTests.test_transitions_between_four_poses_retain_correct_active_node) ... ok
 test_unknown_weapon_transient_and_weapon_change_invalidate_cache (__main__.LongarmTests.test_unknown_weapon_transient_and_weapon_change_invalidate_cache) ... ok
@@ -51,6 +55,6 @@ test_winchester_uses_captured_path_and_real_selector_body (__main__.LongarmTests
 test_wrapped_fifo_compacts_and_original_pop_still_works (__main__.LongarmTests.test_wrapped_fifo_compacts_and_original_pop_still_works) ... ok
 
 ----------------------------------------------------------------------
-Ran 51 tests in 10.312s
+Ran 55 tests in 4.510s
 
 OK

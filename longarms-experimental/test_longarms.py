@@ -51,6 +51,7 @@ class LongarmTests(m.GuardTests):
   v.add=add
   globalnode=add('global',0xdb982272);v.q(v.game+0x2ab5e78,globalnode)
   base_node=add('base',0xbd701184,globalnode)
+  v.q(v.game+0x2ab5e78,base_node) # Actual native namespace: already the character root.
   # Standing path recovered from the user's actual native Winchester execution.
   gun=add('gun',0x18e67533,base_node);rifle=add('rifle',0x840a9c18,gun)
   de=add('standing_de',0xbcacd642,rifle);middle=add('middle',0xafd53e15,de)
@@ -95,9 +96,9 @@ class LongarmTests(m.GuardTests):
   v.q(v.ctrl+0xb0,v.nodes['normal_standing']);self.assertEqual(self.call(v,'playing_node',42,ptr),0)
  def test_missing_crouch_and_ambiguous_tree_refuse_without_standing_fallback(self):
   for issue in ['missing','ambiguous']:
-   v=self.fixture();k=2 if issue=='missing' else 0;ptr,_=self.path(v,k)
+   v=self.fixture();k=2 if issue=='missing' else 1;ptr,_=self.path(v,k)
    if issue=='missing':v.i(v.nodes['crouched']+0x38,0x1234)
-   else:v.add('duplicate',0x61d07327,v.nodes['middle'])
+   else:v.add('duplicate',0x7e84a609,v.nodes['motion_de'])
    self.assertEqual(self.call(v,'select_node',42,ptr),0);self.assertEqual(v.native_calls,[]);self.assertEqual(v.old_nodes,[])
  def test_tampered_engine_code_layout_tree_and_nonlocal_actor_refuse(self):
   for issue in ['code','prologue','layout','global','owner','create']:
@@ -105,7 +106,7 @@ class LongarmTests(m.GuardTests):
    if issue=='prologue':v.u.mem_write(v.game+0xcdfa20,b'\x90')
    if issue=='code':v.u.mem_write(v.game+0xcdfa7a,b'\x90')
    if issue=='layout':v.q(v.vt+0x58,v.game+0x585e61)
-   if issue=='global':v.q(v.game+0x2ab5e78,0)
+   if issue=='global':v.q(v.game+0x2ab5e78,0);v.q(v.ctrl+0xb0,0)
    if issue=='owner':v.i(v.controller+0x5ec,99)
    if issue=='create':v.q(v.leafvt+0x88,0x50001000) # outside game code range
    self.assertEqual(self.call(v,'select_node',42,ptr),0);self.assertEqual(v.native_calls,[])
@@ -153,6 +154,32 @@ class LongarmTests(m.GuardTests):
    v.i(v.frame+0x6c,w);v.i(v.frame+0x76c,w);v.real_engine()
    v.mark();v.tick();self.assertEqual(v.requests,1);self.assertEqual(v.pending(),-1)
    self.assertEqual(v.u.mem_read(v.weapon+0x5d4,1)[0]&0x40,0x40)
+ def test_native_lookup_confirms_namespace_skips_initial_component(self):
+  v=self.fixture();rva=0x5874c0;v.u.mem_write(v.game+rva,game.get_data(rva,0x11a))
+  hashes=[0xbd701184,0x18e67533,0x840a9c18,0xbcacd642,0xafd53e15,0x61d07327]
+  ptr=v.heap+0x20000;v.u.mem_write(ptr,struct.pack('<6I',*hashes));end=0x5000f000;sp=v.frame-8;v.q(sp,end)
+  v.u.reg_write(UC_X86_REG_RSP,sp);v.u.reg_write(UC_X86_REG_RCX,ptr);v.u.reg_write(UC_X86_REG_RDX,len(hashes));v.u.reg_write(UC_X86_REG_R8,0)
+  v.u.emu_start(v.game+rva,end,count=100000)
+  self.assertEqual(v.u.reg_read(UC_X86_REG_RIP),end);self.assertEqual(v.u.reg_read(UC_X86_REG_RAX),v.target)
+ def test_experimental02_failure_reproduced_on_correct_namespace(self):
+  current=m.s.old.PLUGIN_IMAGE
+  try:
+   old=pefile.PE('/workspace/hipfire-longarms2/output/HipfireRDR1.red');m.s.old.PLUGIN_IMAGE=old.get_memory_mapped_image()
+   v=self.fixture();ptr,_=self.path(v,0)
+   oldsyms=json.loads(Path('/workspace/hipfire-longarms2/symbols.json').read_text());saved=syms['select_node'];syms['select_node']=oldsyms['select_node']
+   try:self.assertEqual(self.call(v,'select_node',42,ptr),0);self.assertEqual(v.native_calls,[])
+   finally:syms['select_node']=saved
+  finally:m.s.old.PLUGIN_IMAGE=current
+  v=self.fixture();ptr,_=self.path(v,0);self.assertEqual(self.call(v,'select_node',42,ptr),1)
+ def test_global_container_and_actor_chain_are_supported_as_root_fallbacks(self):
+  for root in ['global','actor']:
+   v=self.fixture();ptr,_=self.path(v,0)
+   v.q(v.game+0x2ab5e78,v.nodes['global'] if root=='global' else 0)
+   if root=='actor':v.q(v.ctrl+0xb0,v.nodes['normal_standing'])
+   self.assertEqual(self.call(v,'select_node',42,ptr),1);self.assertEqual(v.selected,v.target)
+ def test_standing_resolves_exact_recorded_path_despite_other_deadeye_variants(self):
+  v=self.fixture();other=v.add('other_de',0x122ac9f4,v.nodes['rifle']);v.add('other_stand',0x61d07327,other)
+  ptr,_=self.path(v,0);self.assertEqual(self.call(v,'select_node',42,ptr),1);self.assertEqual(v.selected,v.target)
  def test_final_pe_and_original_sections(self):
   original=pefile.PE('/workspace/hipfire-series4/output/HipfireRDR1.red');allowed=set()
   for patch in json.loads((R/'patch-report.json').read_text()):
