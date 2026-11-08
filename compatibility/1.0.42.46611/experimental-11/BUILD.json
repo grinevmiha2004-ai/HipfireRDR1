@@ -1,0 +1,11 @@
+{
+  "name": "Experimental 11 / Friend / 1.0.42.46611",
+  "target_exe_version": "1.0.42.46611",
+  "target_exe_sha256": "cc27983d9b9183ad32bf9f12d234a3b76ced27d32cce054279895d65e765b2c5",
+  "mod_sha256": "b19b32a853696aa9233557b73e5d11f9d334e5b3a9ecee08574a2c3804de8bb3",
+  "upstream_behavior": "Experimental 11",
+  "upstream_cpp_logic_preserved": true,
+  "game_tested": false,
+  "automated_tests": 102,
+  "historical_user_profile_comparisons_excluded": 4
+}

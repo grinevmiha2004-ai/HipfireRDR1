@@ -1,0 +1,374 @@
+[
+  {
+    "rva": "0x3a71",
+    "before": "07",
+    "after": "14",
+    "reason": "weapon limit 7 -> 20"
+  },
+  {
+    "rva": "0x404b",
+    "before": "07",
+    "after": "14",
+    "reason": "weapon limit 7 -> 20"
+  },
+  {
+    "rva": "0x4a6f",
+    "before": "07",
+    "after": "14",
+    "reason": "weapon limit 7 -> 20"
+  },
+  {
+    "rva": "0x1f5c",
+    "before": "d0b70000",
+    "after": "70710600",
+    "reason": "select_node"
+  },
+  {
+    "rva": "0x261d",
+    "before": "cfb10000",
+    "after": "df710600",
+    "reason": "playing_node"
+  },
+  {
+    "rva": "0x2656",
+    "before": "16b40000",
+    "after": "06720600",
+    "reason": "rapid_pose"
+  },
+  {
+    "rva": "0x2805",
+    "before": "e7af0000",
+    "after": "f76f0600",
+    "reason": "playing_node"
+  },
+  {
+    "rva": "0x43d5",
+    "before": "57930000",
+    "after": "f74c0600",
+    "reason": "select_node"
+  },
+  {
+    "rva": "0x4a24",
+    "before": "48900000",
+    "after": "384e0600",
+    "reason": "rapid_pose"
+  },
+  {
+    "rva": "0x4c2c",
+    "before": "c0870000",
+    "after": "f0500600",
+    "reason": "controlled_request"
+  },
+  {
+    "rva": "0x586d",
+    "before": "bf7e0000",
+    "after": "5f380600",
+    "reason": "select_node"
+  },
+  {
+    "rva": "0x593c",
+    "before": "30810000",
+    "after": "203f0600",
+    "reason": "rapid_pose"
+  },
+  {
+    "rva": "0x5ac8",
+    "before": "f4baffff",
+    "after": "f43d0600",
+    "reason": "longarm_aim"
+  },
+  {
+    "rva": "0x5cdc",
+    "before": "507a0000",
+    "after": "f0330600",
+    "reason": "select_node"
+  },
+  {
+    "rva": "0x5d62",
+    "before": "5ab8ffff",
+    "after": "5a3b0600",
+    "reason": "longarm_aim"
+  },
+  {
+    "rva": "0x5dc6",
+    "before": "66790000",
+    "after": "06330600",
+    "reason": "select_node"
+  },
+  {
+    "rva": "0x5f02",
+    "before": "2a780000",
+    "after": "ca310600",
+    "reason": "select_node"
+  },
+  {
+    "rva": "0x60f9",
+    "before": "33760000",
+    "after": "d32f0600",
+    "reason": "select_node"
+  },
+  {
+    "rva": "0x612c",
+    "before": "00760000",
+    "after": "a02f0600",
+    "reason": "select_node"
+  },
+  {
+    "rva": "0x615f",
+    "before": "cd750000",
+    "after": "6d2f0600",
+    "reason": "select_node"
+  },
+  {
+    "rva": "0x619b",
+    "before": "21b4ffff",
+    "after": "21370600",
+    "reason": "longarm_aim"
+  },
+  {
+    "rva": "0x625fb",
+    "before": "f1faffff",
+    "after": "d1730000",
+    "reason": "mark_empty_stable"
+  },
+  {
+    "rva": "0x6400c",
+    "before": "2097faff",
+    "after": "c0500000",
+    "reason": "select_node"
+  },
+  {
+    "rva": "0x65296",
+    "before": "f6fdffff",
+    "after": "c6470000",
+    "reason": "longarm_queue"
+  },
+  {
+    "rva": "0x65678",
+    "before": "14faffff",
+    "after": "e4430000",
+    "reason": "longarm_queue"
+  },
+  {
+    "rva": "0x64029",
+    "before": "7399faff",
+    "after": "f3620000",
+    "reason": "standing revolver uses AIM facing like other poses"
+  },
+  {
+    "rva": "0x4025",
+    "before": "c7980000",
+    "after": "77590600",
+    "reason": "should_passthrough"
+  },
+  {
+    "rva": "0x4763",
+    "before": "19d8ffff",
+    "after": "49520600",
+    "reason": "cancel_passthrough"
+  },
+  {
+    "rva": "0x39b4",
+    "before": "e9f51b0600",
+    "after": "e9e2690600",
+    "reason": "bounded longarm timing tick"
+  },
+  {
+    "rva": "0x1ace",
+    "before": "7867c302",
+    "after": "0858c402",
+    "reason": "lea rcx, [rcx + 0x2c36778]"
+  },
+  {
+    "rva": "0x1adc",
+    "before": "6867c302",
+    "after": "f857c402",
+    "reason": "lea rcx, [rbx + 0x2c36768]"
+  },
+  {
+    "rva": "0x2add",
+    "before": "00bf2c02",
+    "after": "30af2d02",
+    "reason": "lea rcx, [r13 + 0x22cbf00]"
+  },
+  {
+    "rva": "0x2bc0",
+    "before": "ffff0301",
+    "after": "ffbf0401",
+    "reason": "cmp rax, 0x103ffff"
+  },
+  {
+    "rva": "0x3242",
+    "before": "ffff0301",
+    "after": "ffbf0401",
+    "reason": "cmp rax, 0x103ffff"
+  },
+  {
+    "rva": "0x3284",
+    "before": "ffff0301",
+    "after": "ffbf0401",
+    "reason": "cmp rax, 0x103ffff"
+  },
+  {
+    "rva": "0xced5",
+    "before": "29d73300",
+    "after": "99d33300",
+    "reason": "lea rax, [rbx + 0x33d729]"
+  },
+  {
+    "rva": "0xcf1e",
+    "before": "29d73400",
+    "after": "99d33400",
+    "reason": "lea rdx, [rbx + 0x34d729]"
+  },
+  {
+    "rva": "0xcf8f",
+    "before": "00bf2c02",
+    "after": "30af2d02",
+    "reason": "lea rcx, [rbx + 0x22cbf00]"
+  },
+  {
+    "rva": "0xd10c",
+    "before": "d859b102",
+    "after": "584ab202",
+    "reason": "lea rcx, [rbx + 0x2b159d8]"
+  },
+  {
+    "rva": "0xd450",
+    "before": "2060d000",
+    "after": "0064d000",
+    "reason": "lea rax, [rdi + 0xd06020]"
+  },
+  {
+    "rva": "0xd498",
+    "before": "2060d100",
+    "after": "0064d100",
+    "reason": "lea rbp, [rdi + 0xd16020]"
+  },
+  {
+    "rva": "0xde62",
+    "before": "ffff0301",
+    "after": "ffbf0401",
+    "reason": "cmp rax, 0x103ffff"
+  },
+  {
+    "rva": "0xe356",
+    "before": "7862c801",
+    "after": "2849c901",
+    "reason": "add rax, 0x1c86278"
+  },
+  {
+    "rva": "0xe4ba",
+    "before": "00bf2c02",
+    "after": "30af2d02",
+    "reason": "lea rcx, [rax + 0x22cbf00]"
+  },
+  {
+    "rva": "0xe581",
+    "before": "d062c801",
+    "after": "8049c901",
+    "reason": "lea rdi, [rax + 0x1c862d0]"
+  },
+  {
+    "rva": "0x62293",
+    "before": "00dad100",
+    "after": "e0ddd100",
+    "reason": "lea rax, [r13 + 0xd1da00]"
+  },
+  {
+    "rva": "0x62332",
+    "before": "00bf2c02",
+    "after": "30af2d02",
+    "reason": "lea rcx, [r13 + 0x22cbf00]"
+  },
+  {
+    "rva": "0x6536d",
+    "before": "f087ca00",
+    "after": "d08bca00",
+    "reason": "lea rax, [r14 + 0xca87f0]"
+  },
+  {
+    "rva": "0x65391",
+    "before": "1088ca00",
+    "after": "f08bca00",
+    "reason": "lea r13, [r14 + 0xca8810]"
+  },
+  {
+    "rva": "0x653a9",
+    "before": "107835ff",
+    "after": "307435ff",
+    "reason": "cmp byte ptr [r15 + rbp - 0xca87f0], al"
+  },
+  {
+    "rva": "0x65438",
+    "before": "f046d301",
+    "after": "f82ad401",
+    "reason": "lea rbp, [r14 + 0x1d346f0]"
+  },
+  {
+    "rva": "0x20df0",
+    "before": "38583000",
+    "after": "a8543000",
+    "reason": "input caller allowlist"
+  },
+  {
+    "rva": "0x20df4",
+    "before": "7a843400",
+    "after": "ea803400",
+    "reason": "input caller allowlist"
+  },
+  {
+    "rva": "0x20df8",
+    "before": "93903400",
+    "after": "038d3400",
+    "reason": "input caller allowlist"
+  },
+  {
+    "rva": "0x20dfc",
+    "before": "7a9a3400",
+    "after": "ea963400",
+    "reason": "input caller allowlist"
+  },
+  {
+    "rva": "0x20e00",
+    "before": "35443700",
+    "after": "a5403700",
+    "reason": "input caller allowlist"
+  },
+  {
+    "rva": "0x20e04",
+    "before": "6b443700",
+    "after": "db403700",
+    "reason": "input caller allowlist"
+  },
+  {
+    "rva": "0x20e08",
+    "before": "d0443700",
+    "after": "40413700",
+    "reason": "input caller allowlist"
+  },
+  {
+    "rva": "0x20e0c",
+    "before": "eb443700",
+    "after": "5b413700",
+    "reason": "input caller allowlist"
+  },
+  {
+    "rva": "0x20e10",
+    "before": "38473700",
+    "after": "a8433700",
+    "reason": "input caller allowlist"
+  },
+  {
+    "rva": "0x20e14",
+    "before": "51473700",
+    "after": "c1433700",
+    "reason": "input caller allowlist"
+  },
+  {
+    "rva": "0xcebb",
+    "before": "f30f5c059f85fb01",
+    "after": "f30f5c055f79fc01",
+    "reason": "draw activity signature"
+  }
+]
