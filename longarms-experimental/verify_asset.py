@@ -39,6 +39,9 @@ def visit(n):
    for k in range(16,32,4):
     if u(t+k)>>28==5:crouch_clips.add(b[ptr(t+k):].split(b'\0',1)[0].decode('ascii'))
 visit(root)
+assert path(0x100400)==path(root)+['0139c40d']
+assert hashes(0x100400)==[0xafd53e15,0x190080c6]
+assert hashes(0x100480)==[0x61d07327,0x7d2d38e8,0x7e84a609]
 assert len(seen)==26 and 0xbcacd642 not in node_hashes
 assert len(crouch_clips)==18 and not any('_rpd_' in clip for clip in crouch_clips)
-print(json.dumps(dict(source='act.rpf/default_character.wat',unpacked_sha256=hashlib.sha256(b).hexdigest(),family_path=path(family),child_hashes=[f'{v:08x}' for v in hashes(family)],actions=entries,crouch=dict(path=path(root),nodes=len(seen),ordinary_clips=sorted(crouch_clips),dedicated_rapid_family=False)),indent=2))
+print(json.dumps(dict(source='act.rpf/default_character.wat',unpacked_sha256=hashlib.sha256(b).hexdigest(),family_path=path(family),child_hashes=[f'{v:08x}' for v in hashes(family)],actions=entries,crouch=dict(path=path(root),selected_ordinary_hold=path(0x100400),ordinary_pose_children=[f'{x:08x}' for x in hashes(0x100480)],common_action_driver='190080c6',nodes=len(seen),ordinary_clips=sorted(crouch_clips),dedicated_rapid_family=False)),indent=2))

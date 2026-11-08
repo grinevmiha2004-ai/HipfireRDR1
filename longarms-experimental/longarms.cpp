@@ -77,7 +77,16 @@ static Q resolve(U k,Q owner,ResolveInfo& info){
   if(k==1&&(!child(family,0x61d07327U)||!child(family,0x56bc16f8U)||!child(family,0x7e84a609U)))target=0;
   info.stage=target?0:2;info.matches=target?1:0;return target;
  }
- info.stage=3;return 0;
+ // CrouchRifle has ordinary Hold/Walk/Run aim/fire actions, no rapid
+ // family. Keep the mod's click/target pipeline and select that authored
+ // ordinary family instead of handing an unaimed LMB back to the game.
+ Q crouch=child(child(child(child(child(base,0x892a3c35U),0x2751a740U),0x92133dafU),0xbe49465cU),0x0139c40dU);
+ Q family=child(crouch,0xafd53e15U);
+ Q target=crouch;
+ // Include the common action driver (190080C6), referenced by all three
+ // hold leaves. Its ordinary firing handoffs remain inside our scope.
+ if(!child(crouch,0x190080c6U)||!child(family,0x61d07327U)||!child(family,0x7d2d38e8U)||!child(family,0x7e84a609U))target=0;
+ info.stage=target?0:3;info.matches=target?1:0;return target;
 }
 static bool signature(){
  // Build-specific bodies used by the native action-node selector, and
@@ -129,11 +138,13 @@ extern "C" int MS select_node(int actor,const char* path){
  }
  if(!same&&!select_resolved(owner,target)){choice.nodes[k]=0;return 0;}
  choice.nodes[k]=target;
- choice.after_goal=(k==1&&!owned_goal);
- log_event("longarm_resolve ready actor=%d weapon=%d kind=%d node_hash=%08x",actor,w,k,n.hash);return 1;
+ choice.after_goal=(k!=0&&!owned_goal);
+ log_event("longarm_resolve ready actor=%d weapon=%d kind=%d node_hash=%08x",actor,w,k,n.hash);
+ if(k>=2)log_event("longarm_crouch actor=%d kind=%d route=ordinary_aim_fire",actor,k);
+ return 1;
 }
 static bool active(int actor,U k){
- if(k>=2)return false;
+ if(k>=4)return false;
  Q expected=choice.nodes[k];if(!expected)return false;
  Node target{};if(!node(expected,target))return false;
  Q owner=owner_for(actor),controller=owner?ptr(owner+0xb0):0;
@@ -158,8 +169,8 @@ extern "C" void MS longarm_aim(int actor,void* target){
  original_aim(actor,target);
  if(!choice.after_goal)return;
  choice.after_goal=0;
- if(choice.actor!=actor||!rifle(choice.weapon)||owned_actor!=actor||owned_kind!=1||!owned_expanded)return;
- Q selected=choice.nodes[1],owner=owner_for(actor);Node n{};
+ if(choice.actor!=actor||!rifle(choice.weapon)||owned_actor!=actor||(owned_kind<1||owned_kind>3)||!owned_expanded)return;
+ Q selected=choice.nodes[owned_kind],owner=owner_for(actor);Node n{};
  if(!selected||!owner||!node(selected,n)||!signature())return;
  // Initial AIM goal can replace a just-selected action node in locomotion.
  // Reassert once AFTER that goal; do not re-enter on each continued shot.
@@ -170,7 +181,7 @@ extern "C" void MS longarm_controls(B*);
 extern "C" void MS longarm_tick(B* f){
  longarm_controls(f);
  const int actor=at<int>(f,0x768),w=at<int>(f,0x76c);
- if(!mod_enabled||!input_enabled||!rifle(w)||owned_actor!=actor||choice.actor!=actor||choice.weapon!=w||!owned_expanded||owned_kind<0||owned_kind>1||!(at<float>(f,0x828)>0.5f)){
+ if(!mod_enabled||!input_enabled||!rifle(w)||owned_actor!=actor||choice.actor!=actor||choice.weapon!=w||!owned_expanded||owned_kind<0||owned_kind>3||!(at<float>(f,0x828)>0.5f)){
   choice.prepare_value=choice.confirmation=choice.hold_until=0;return;
  }
  const Q now=at<Q>(f,0x40),confirmed=at<Q>(f,0x788);
@@ -188,22 +199,17 @@ extern "C" void MS longarm_tick(B* f){
   }else choice.prepare_value=0;
  }else choice.prepare_value=0;
  // A bounded hold spans the slow rifle cycle and the next physical click.
- // No click is generated, and empty clips/crouch/cancel end this extension.
+ // No click is generated; empty clips and cancellation end the extension.
  if(now<choice.hold_until&&release_at<choice.hold_until)release_at=choice.hold_until;
 }
 // This predicate replaces only the mod's early cover-passthrough check.
 // It never changes the game's cover state or fabricates mouse input.
 extern "C" int MS should_passthrough(int actor){
  choice.crouch_passthrough=0;
- int cover=original_cover(actor);if(cover)return cover;
- if(!rifle(weapon(actor)))return 0;
- const int pose=original_pose(actor);
- if(pose==2||pose==3){choice.crouch_passthrough=1;return 1;}
- return 0;
+ return original_cover(actor);
 }
 extern "C" void MS cancel_passthrough(void* controls,const char* reason,bool keep){
- // Real cover keeps its original behavior. Rifle crouch must release our
- // forced action node as well as its goals before ordinary fire resumes.
+ // Retain the existing cover cancellation contract.
  const bool normal=choice.crouch_passthrough!=0;
  original_cancel(controls,normal?"longarm_crouch_passthrough":reason,normal?false:keep);
 }
@@ -306,7 +312,7 @@ extern "C" RequestResult* MS controlled_request(RequestResult* out,U actor){
  return original_request(out,actor);
 }
 extern "C" void MS longarm_controls(B* f){
- if(!scoped(f)||!(at<float>(f,0x828)>0.5f)||owned_actor!=at<int>(f,0x768)||choice.actor!=owned_actor||choice.weapon!=at<int>(f,0x76c)||!owned_expanded||owned_kind<0||owned_kind>1)return;
+ if(!scoped(f)||!(at<float>(f,0x828)>0.5f)||owned_actor!=at<int>(f,0x768)||choice.actor!=owned_actor||choice.weapon!=at<int>(f,0x76c)||!owned_expanded||owned_kind<0||owned_kind>3)return;
  longarm_queue(f,false);
  const Q now=at<Q>(f,0x40),count=at<Q>(f,0x760),head=at<Q>(f,0x758);
  if(at<B>(f,0x770)&&!at<B>(f,0x777)&&count&&count<=64&&head<64){

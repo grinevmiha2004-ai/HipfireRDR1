@@ -75,6 +75,20 @@
       "92133daf",
       "be49465c"
     ],
+    "selected_ordinary_hold": [
+      "bd701184",
+      "892a3c35",
+      "2751a740",
+      "92133daf",
+      "be49465c",
+      "0139c40d"
+    ],
+    "ordinary_pose_children": [
+      "61d07327",
+      "7d2d38e8",
+      "7e84a609"
+    ],
+    "common_action_driver": "190080c6",
     "nodes": 26,
     "ordinary_clips": [
       "crc_rfl_180_run_dwn_aim",

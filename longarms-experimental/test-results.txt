@@ -16,7 +16,7 @@ test_failed_node_has_no_aim_or_request (__main__.HandgunTests.test_failed_node_h
 test_moving_crouch_routes_unchanged (__main__.HandgunTests.test_moving_crouch_routes_unchanged) ... ok
 test_original_continuation_keeps_node_and_current_target (__main__.HandgunTests.test_original_continuation_keeps_node_and_current_target) ... ok
 test_standing_goal_backend (__main__.HandgunTests.test_standing_goal_backend) ... ok
-test_actual_crouch_passthrough_clears_queue_releases_goals_and_restores_fire (__main__.LongarmTests.test_actual_crouch_passthrough_clears_queue_releases_goals_and_restores_fire) ... ok
+test_actual_crouched_continuation_uses_current_aim_and_single_shoot_goal (__main__.LongarmTests.test_actual_crouched_continuation_uses_current_aim_and_single_shoot_goal) ... ok
 test_all_four_poses (__main__.LongarmTests.test_all_four_poses) ... ok
 test_all_pose_intervals_match_standing (__main__.LongarmTests.test_all_pose_intervals_match_standing) ... ok
 test_all_rifle_models_in_each_scoped_pose (__main__.LongarmTests.test_all_rifle_models_in_each_scoped_pose) ... ok
@@ -24,7 +24,9 @@ test_cancel_and_new_series_do_not_reuse_old_birth_time (__main__.LongarmTests.te
 test_cancelled_controls_and_heartbeat (__main__.LongarmTests.test_cancelled_controls_and_heartbeat) ... ok
 test_child_descendant_active_without_guessing_clip_names (__main__.LongarmTests.test_child_descendant_active_without_guessing_clip_names) ... ok
 test_confirmed_rifle_hold_spans_bolt_cycle_then_expires (__main__.LongarmTests.test_confirmed_rifle_hold_spans_bolt_cycle_then_expires) ... ok
-test_disabled_controls_and_crouched_modes_do_not_update_aim (__main__.LongarmTests.test_disabled_controls_and_crouched_modes_do_not_update_aim) ... ok
+test_crouched_locomotion_accepts_ordinary_walk_and_run_children (__main__.LongarmTests.test_crouched_locomotion_accepts_ordinary_walk_and_run_children) ... ok
+test_crouched_longarm_keeps_mod_click_pipeline_instead_of_passthrough (__main__.LongarmTests.test_crouched_longarm_keeps_mod_click_pipeline_instead_of_passthrough) ... ok
+test_disabled_controls_and_invalid_modes_do_not_update_aim (__main__.LongarmTests.test_disabled_controls_and_invalid_modes_do_not_update_aim) ... ok
 test_empty_or_expired_hold_clears_guard (__main__.LongarmTests.test_empty_or_expired_hold_clears_guard) ... ok
 test_engine_accepted_round_is_preserved_until_confirmation (__main__.LongarmTests.test_engine_accepted_round_is_preserved_until_confirmation) ... ok
 test_experimental02_failure_reproduced_on_correct_namespace (__main__.LongarmTests.test_experimental02_failure_reproduced_on_correct_namespace) ... ok
@@ -36,12 +38,14 @@ test_handgun_and_sawedoff_requests_preserve_original_behavior (__main__.LongarmT
 test_held_rifle_tracks_new_target_without_creating_fire_or_restarting_node (__main__.LongarmTests.test_held_rifle_tracks_new_target_without_creating_fire_or_restarting_node) ... ok
 test_hold_extension_stops_for_empty_crouched_cancelled_or_other_weapon (__main__.LongarmTests.test_hold_extension_stops_for_empty_crouched_cancelled_or_other_weapon) ... ok
 test_incomplete_locomotion_family_is_refused (__main__.LongarmTests.test_incomplete_locomotion_family_is_refused) ... ok
+test_initial_crouch_aim_reasserts_its_own_ordinary_family_after_replacement (__main__.LongarmTests.test_initial_crouch_aim_reasserts_its_own_ordinary_family_after_replacement) ... ok
 test_input_trigger_obeys_same_alignment_gate_as_internal_request (__main__.LongarmTests.test_input_trigger_obeys_same_alignment_gate_as_internal_request) ... ok
 test_live_target_unwind_preserves_nonvolatile_vector_registers (__main__.LongarmTests.test_live_target_unwind_preserves_nonvolatile_vector_registers) ... ok
 test_locomotion_family_accepts_authored_children_without_reentering (__main__.LongarmTests.test_locomotion_family_accepts_authored_children_without_reentering) ... ok
 test_longarm_expiry_prunes_wrapped_queue_but_preserves_fresh_click (__main__.LongarmTests.test_longarm_expiry_prunes_wrapped_queue_but_preserves_fresh_click) ... ok
 test_longarm_standing_backlog_from_07_expires_in_08 (__main__.LongarmTests.test_longarm_standing_backlog_from_07_expires_in_08) ... ok
 test_longarm_tick_bridge_preserves_registers_while_extending_live_attempt (__main__.LongarmTests.test_longarm_tick_bridge_preserves_registers_while_extending_live_attempt) ... ok
+test_missing_ordinary_crouch_family_does_not_guess_deadeye_path (__main__.LongarmTests.test_missing_ordinary_crouch_family_does_not_guess_deadeye_path) ... ok
 test_mode_changes_within_existing_series (__main__.LongarmTests.test_mode_changes_within_existing_series) ... ok
 test_native_lookup_confirms_namespace_skips_initial_component (__main__.LongarmTests.test_native_lookup_confirms_namespace_skips_initial_component) ... ok
 test_native_selector_preserves_reference_count_and_nonvolatile_registers (__main__.LongarmTests.test_native_selector_preserves_reference_count_and_nonvolatile_registers) ... ok
@@ -62,7 +66,7 @@ test_reload_uses_stable_weapon_after_actual_scratch_clobber (__main__.LongarmTes
 test_relocated_tree_resolver (__main__.LongarmTests.test_relocated_tree_resolver) ... ok
 test_reproduced_goal_replacement_is_repaired_only_after_initial_aim (__main__.LongarmTests.test_reproduced_goal_replacement_is_repaired_only_after_initial_aim) ... ok
 test_reproduces_old_autoreload_failure_with_reused_weapon_local (__main__.LongarmTests.test_reproduces_old_autoreload_failure_with_reused_weapon_local) ... ok
-test_rifle_crouch_never_selects_a_hip_node_even_if_one_exists (__main__.LongarmTests.test_rifle_crouch_never_selects_a_hip_node_even_if_one_exists) ... ok
+test_rifle_crouch_selects_ordinary_branch_instead_of_unrelated_deadeye (__main__.LongarmTests.test_rifle_crouch_selects_ordinary_branch_instead_of_unrelated_deadeye) ... ok
 test_sawedoff_and_original_handguns_keep_exact_pistol_routes (__main__.LongarmTests.test_sawedoff_and_original_handguns_keep_exact_pistol_routes) ... ok
 test_signature_or_existing_hook_not_overwritten (__main__.LongarmTests.test_signature_or_existing_hook_not_overwritten) ... ok
 test_slow_individual_clicks_do_not_expire_fresh_intent (__main__.LongarmTests.test_slow_individual_clicks_do_not_expire_fresh_intent) ... ok
@@ -85,6 +89,6 @@ test_winchester_uses_captured_path_and_real_selector_body (__main__.LongarmTests
 test_wrapped_fifo_compacts_and_original_pop_still_works (__main__.LongarmTests.test_wrapped_fifo_compacts_and_original_pop_still_works) ... ok
 
 ----------------------------------------------------------------------
-Ran 85 tests in 3.636s
+Ran 89 tests in 4.492s
 
 OK
