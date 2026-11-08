@@ -1,0 +1,54 @@
+test_actual_engine_no_reserve_refuses (reload_tests.Tests.test_actual_engine_no_reserve_refuses) ... ok
+test_actual_engine_request_with_reserve (reload_tests.Tests.test_actual_engine_request_with_reserve) ... ok
+test_cancelled_contexts (reload_tests.Tests.test_cancelled_contexts) ... ok
+test_known_weapon_states (reload_tests.Tests.test_known_weapon_states) ... ok
+test_last_round (reload_tests.Tests.test_last_round) ... ok
+test_no_hipfire_confirmation (reload_tests.Tests.test_no_hipfire_confirmation) ... ok
+test_no_reserve_bounded (reload_tests.Tests.test_no_reserve_bounded) ... ok
+test_other_confirmed_ammo (reload_tests.Tests.test_other_confirmed_ammo) ... ok
+test_pending_and_queue (reload_tests.Tests.test_pending_and_queue) ... ok
+test_relocated_bridges_preserve_registers (reload_tests.Tests.test_relocated_bridges_preserve_registers) ... ok
+test_unwind_entries_registered (reload_tests.Tests.test_unwind_entries_registered) ... ok
+test_wait_for_release_and_cycle (reload_tests.Tests.test_wait_for_release_and_cycle) ... ok
+test_windows_section_layout (reload_tests.Tests.test_windows_section_layout) ... ok
+test_bounded_idle_window_and_next_shot_interval (__main__.HandgunTests.test_bounded_idle_window_and_next_shot_interval) ... ok
+test_failed_node_has_no_aim_or_request (__main__.HandgunTests.test_failed_node_has_no_aim_or_request) ... ok
+test_moving_crouch_routes_unchanged (__main__.HandgunTests.test_moving_crouch_routes_unchanged) ... ok
+test_original_continuation_keeps_node_and_current_target (__main__.HandgunTests.test_original_continuation_keeps_node_and_current_target) ... ok
+test_standing_goal_backend (__main__.HandgunTests.test_standing_goal_backend) ... ok
+test_accepted_family_cached_and_unknown_weapon_transient_preserved (__main__.LongarmTests.test_accepted_family_cached_and_unknown_weapon_transient_preserved) ... ok
+test_all_four_poses (__main__.LongarmTests.test_all_four_poses) ... ok
+test_all_pose_intervals_match_standing (__main__.LongarmTests.test_all_pose_intervals_match_standing) ... ok
+test_all_thirteen_longarms_all_four_poses_route_to_longarm_nodes (__main__.LongarmTests.test_all_thirteen_longarms_all_four_poses_route_to_longarm_nodes) ... ok
+test_cancel_and_new_series_do_not_reuse_old_birth_time (__main__.LongarmTests.test_cancel_and_new_series_do_not_reuse_old_birth_time) ... ok
+test_cancelled_controls_and_heartbeat (__main__.LongarmTests.test_cancelled_controls_and_heartbeat) ... ok
+test_clip_filter_only_accepts_matching_hip_rapid_family_and_posture (__main__.LongarmTests.test_clip_filter_only_accepts_matching_hip_rapid_family_and_posture) ... ok
+test_empty_or_expired_hold_clears_guard (__main__.LongarmTests.test_empty_or_expired_hold_clears_guard) ... ok
+test_final_pe_and_original_sections (__main__.LongarmTests.test_final_pe_and_original_sections) ... ok
+test_frame_weapon_gate_accepts_firearms_excludes_other_items (__main__.LongarmTests.test_frame_weapon_gate_accepts_firearms_excludes_other_items) ... ok
+test_handgun_select_and_query_preserve_exact_original_paths (__main__.LongarmTests.test_handgun_select_and_query_preserve_exact_original_paths) ... ok
+test_missing_nodes_refuse_and_never_use_handgun_fallback (__main__.LongarmTests.test_missing_nodes_refuse_and_never_use_handgun_fallback) ... ok
+test_mode_changes_within_existing_series (__main__.LongarmTests.test_mode_changes_within_existing_series) ... ok
+test_original_positive_result_preserved (__main__.LongarmTests.test_original_positive_result_preserved) ... ok
+test_override_real_predicate_for_local_actor_only (__main__.LongarmTests.test_override_real_predicate_for_local_actor_only) ... ok
+test_pre_bridge_preserves_registers_and_timestamp (__main__.LongarmTests.test_pre_bridge_preserves_registers_and_timestamp) ... ok
+test_preparing_active_shot_keeps_permission_in_all_poses (__main__.LongarmTests.test_preparing_active_shot_keeps_permission_in_all_poses) ... ok
+test_real_rapid_hook_and_autoreload_all_new_weapon_ids (__main__.LongarmTests.test_real_rapid_hook_and_autoreload_all_new_weapon_ids) ... ok
+test_real_start_branch_for_each_longarm_and_pose (__main__.LongarmTests.test_real_start_branch_for_each_longarm_and_pose) ... ok
+test_real_start_refuses_missing_longarm_nodes_without_aim_or_owned_action (__main__.LongarmTests.test_real_start_refuses_missing_longarm_nodes_without_aim_or_owned_action) ... ok
+test_release_root_never_rewritten (__main__.LongarmTests.test_release_root_never_rewritten) ... ok
+test_relocated_extension_has_no_static_absolute_pointers (__main__.LongarmTests.test_relocated_extension_has_no_static_absolute_pointers) ... ok
+test_signature_or_existing_hook_not_overwritten (__main__.LongarmTests.test_signature_or_existing_hook_not_overwritten) ... ok
+test_slow_individual_clicks_do_not_expire_fresh_intent (__main__.LongarmTests.test_slow_individual_clicks_do_not_expire_fresh_intent) ... ok
+test_standing_fifo_preserved_for_same_timing (__main__.LongarmTests.test_standing_fifo_preserved_for_same_timing) ... ok
+test_standing_interval_restored_after_confirmation (__main__.LongarmTests.test_standing_interval_restored_after_confirmation) ... ok
+test_unstarted_queue_expires_in_three_poses (__main__.LongarmTests.test_unstarted_queue_expires_in_three_poses) ... ok
+test_unsupported_pose_kinds_refuse_override (__main__.LongarmTests.test_unsupported_pose_kinds_refuse_override) ... ok
+test_waiting_head_is_never_expired (__main__.LongarmTests.test_waiting_head_is_never_expired) ... ok
+test_weapon_and_actor_change_cannot_reuse_cached_node (__main__.LongarmTests.test_weapon_and_actor_change_cannot_reuse_cached_node) ... ok
+test_wrapped_fifo_compacts_and_original_pop_still_works (__main__.LongarmTests.test_wrapped_fifo_compacts_and_original_pop_still_works) ... ok
+
+----------------------------------------------------------------------
+Ran 49 tests in 1.835s
+
+OK

@@ -1,0 +1,110 @@
+[
+  {
+    "rva": "0x3a71",
+    "before": "07",
+    "after": "14",
+    "reason": "weapon limit 7 -> 20"
+  },
+  {
+    "rva": "0x404b",
+    "before": "07",
+    "after": "14",
+    "reason": "weapon limit 7 -> 20"
+  },
+  {
+    "rva": "0x4a6f",
+    "before": "07",
+    "after": "14",
+    "reason": "weapon limit 7 -> 20"
+  },
+  {
+    "rva": "0x1f5c",
+    "before": "d0b70000",
+    "after": "c0620600",
+    "reason": "select_node"
+  },
+  {
+    "rva": "0x261d",
+    "before": "cfb10000",
+    "after": "ff5d0600",
+    "reason": "playing_node"
+  },
+  {
+    "rva": "0x2656",
+    "before": "16b40000",
+    "after": "86630600",
+    "reason": "rapid_pose"
+  },
+  {
+    "rva": "0x2805",
+    "before": "e7af0000",
+    "after": "175c0600",
+    "reason": "playing_node"
+  },
+  {
+    "rva": "0x43d5",
+    "before": "57930000",
+    "after": "473e0600",
+    "reason": "select_node"
+  },
+  {
+    "rva": "0x4a24",
+    "before": "48900000",
+    "after": "b83f0600",
+    "reason": "rapid_pose"
+  },
+  {
+    "rva": "0x586d",
+    "before": "bf7e0000",
+    "after": "af290600",
+    "reason": "select_node"
+  },
+  {
+    "rva": "0x593c",
+    "before": "30810000",
+    "after": "a0300600",
+    "reason": "rapid_pose"
+  },
+  {
+    "rva": "0x5cdc",
+    "before": "507a0000",
+    "after": "40250600",
+    "reason": "select_node"
+  },
+  {
+    "rva": "0x5dc6",
+    "before": "66790000",
+    "after": "56240600",
+    "reason": "select_node"
+  },
+  {
+    "rva": "0x5f02",
+    "before": "2a780000",
+    "after": "1a230600",
+    "reason": "select_node"
+  },
+  {
+    "rva": "0x60f9",
+    "before": "33760000",
+    "after": "23210600",
+    "reason": "select_node"
+  },
+  {
+    "rva": "0x612c",
+    "before": "00760000",
+    "after": "f0200600",
+    "reason": "select_node"
+  },
+  {
+    "rva": "0x615f",
+    "before": "cd750000",
+    "after": "bd200600",
+    "reason": "select_node"
+  },
+  {
+    "rva": "0x6400c",
+    "before": "2097faff",
+    "after": "10420000",
+    "reason": "select_node"
+  }
+]
