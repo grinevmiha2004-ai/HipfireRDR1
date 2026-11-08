@@ -20,151 +20,157 @@
   {
     "rva": "0x1f5c",
     "before": "d0b70000",
-    "after": "d06f0600",
+    "after": "70710600",
     "reason": "select_node"
   },
   {
     "rva": "0x261d",
     "before": "cfb10000",
-    "after": "3f700600",
+    "after": "df710600",
     "reason": "playing_node"
   },
   {
     "rva": "0x2656",
     "before": "16b40000",
-    "after": "66700600",
+    "after": "06720600",
     "reason": "rapid_pose"
   },
   {
     "rva": "0x2805",
     "before": "e7af0000",
-    "after": "576e0600",
+    "after": "f76f0600",
     "reason": "playing_node"
   },
   {
     "rva": "0x43d5",
     "before": "57930000",
-    "after": "574b0600",
+    "after": "f74c0600",
     "reason": "select_node"
   },
   {
     "rva": "0x4a24",
     "before": "48900000",
-    "after": "984c0600",
+    "after": "384e0600",
     "reason": "rapid_pose"
   },
   {
     "rva": "0x4c2c",
     "before": "c0870000",
-    "after": "f04e0600",
+    "after": "f0500600",
     "reason": "controlled_request"
   },
   {
     "rva": "0x586d",
     "before": "bf7e0000",
-    "after": "bf360600",
+    "after": "5f380600",
     "reason": "select_node"
   },
   {
     "rva": "0x593c",
     "before": "30810000",
-    "after": "803d0600",
+    "after": "203f0600",
     "reason": "rapid_pose"
   },
   {
     "rva": "0x5ac8",
     "before": "f4baffff",
-    "after": "543c0600",
+    "after": "f43d0600",
     "reason": "longarm_aim"
   },
   {
     "rva": "0x5cdc",
     "before": "507a0000",
-    "after": "50320600",
+    "after": "f0330600",
     "reason": "select_node"
   },
   {
     "rva": "0x5d62",
     "before": "5ab8ffff",
-    "after": "ba390600",
+    "after": "5a3b0600",
     "reason": "longarm_aim"
   },
   {
     "rva": "0x5dc6",
     "before": "66790000",
-    "after": "66310600",
+    "after": "06330600",
     "reason": "select_node"
   },
   {
     "rva": "0x5f02",
     "before": "2a780000",
-    "after": "2a300600",
+    "after": "ca310600",
     "reason": "select_node"
   },
   {
     "rva": "0x60f9",
     "before": "33760000",
-    "after": "332e0600",
+    "after": "d32f0600",
     "reason": "select_node"
   },
   {
     "rva": "0x612c",
     "before": "00760000",
-    "after": "002e0600",
+    "after": "a02f0600",
     "reason": "select_node"
   },
   {
     "rva": "0x615f",
     "before": "cd750000",
-    "after": "cd2d0600",
+    "after": "6d2f0600",
     "reason": "select_node"
   },
   {
     "rva": "0x619b",
     "before": "21b4ffff",
-    "after": "81350600",
+    "after": "21370600",
     "reason": "longarm_aim"
   },
   {
     "rva": "0x625fb",
     "before": "f1faffff",
-    "after": "31720000",
+    "after": "d1730000",
     "reason": "mark_empty_stable"
   },
   {
     "rva": "0x6400c",
     "before": "2097faff",
-    "after": "204f0000",
+    "after": "c0500000",
     "reason": "select_node"
   },
   {
     "rva": "0x65296",
     "before": "f6fdffff",
-    "after": "26460000",
+    "after": "c6470000",
     "reason": "longarm_queue"
   },
   {
     "rva": "0x65678",
     "before": "14faffff",
-    "after": "44420000",
+    "after": "e4430000",
     "reason": "longarm_queue"
+  },
+  {
+    "rva": "0x64029",
+    "before": "7399faff",
+    "after": "f3620000",
+    "reason": "standing revolver uses AIM facing like other poses"
   },
   {
     "rva": "0x4025",
     "before": "c7980000",
-    "after": "d7570600",
+    "after": "77590600",
     "reason": "should_passthrough"
   },
   {
     "rva": "0x4763",
     "before": "19d8ffff",
-    "after": "a9500600",
+    "after": "49520600",
     "reason": "cancel_passthrough"
   },
   {
     "rva": "0x39b4",
     "before": "e9f51b0600",
-    "after": "e977660600",
+    "after": "e9e2690600",
     "reason": "bounded longarm timing tick"
   }
 ]

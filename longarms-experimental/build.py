@@ -27,6 +27,11 @@ for e in p.DIRECTORY_ENTRY_EXCEPTION:
    dest=i.operands[0].imm;assert i.size==5 and i.imm_size==4
    patch(i.address+1,i.bytes[1:],struct.pack('<i',syms[redirect[dest]][0]-i.address-5),redirect[dest]);counts[dest]+=1
 assert all(counts.values())
+# Limit this heading change to the extra standing-only bridge call.
+heading_calls=[i for i in cs.disasm(p.get_data(0x64000,0x60),0x64000) if i.mnemonic=='call' and i.operands[0].type==capstone.x86.X86_OP_IMM and i.operands[0].imm==0xd9a0]
+assert len(heading_calls)==1
+call=heading_calls[0];patch(call.address+1,call.bytes[1:],struct.pack('<i',syms['uniform_heading'][0]-call.address-5),'standing revolver uses AIM facing like other poses')
+
 # Reuse the existing early control-passthrough branch. Only these two
 # calls are policy-specific; the rest of cover handling remains unchanged.
 for call,old_target,name in [(0x4024,0xd8f0,'should_passthrough'),(0x4762,0x1f80,'cancel_passthrough')]:

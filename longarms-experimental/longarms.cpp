@@ -16,6 +16,7 @@ static bool read(Q p,void* out,Q n){Q got=0;return p>=0x10000&&p<0x0000800000000
 template<class T>T value(Q p){T result{};read(p,&result,sizeof(result));return result;}
 static Q ptr(Q p){return value<Q>(p);}
 static bool eq(const char* a,const char* b){if(!a||!b)return false;while(*a&&*a==*b){++a;++b;}return *a==*b;}
+static bool revolver(int w){return w>=4&&w<=7;} // RedHook SDK: Cattleman through LeMat.
 static bool rifle(int w){return w>=8&&w<=20&&w!=15;} // Capture: sawed-off uses Pistol/DeadEye.
 struct Choice {int actor=-1,weapon=-1;Q nodes[4]{};U refused=0;B crouch_passthrough=0,after_goal=0;Q prepare_value=0,confirmation=0,hold_until=0;};
 Choice choice;
@@ -243,6 +244,8 @@ static_assert(sizeof(Plan)==24);
 struct RequestResult {int status,state;float cycle,alignment;};
 extern "C" {
 void MS original_queue(B*,bool);
+void MS handgun_queue(B*,bool);
+void MS original_heading(int,float,int);
 bool MS original_plan(int,Plan*);
 RequestResult* MS original_request(RequestResult*,U);
 void MS original_shoot_goal(int,const Vec*);
@@ -251,15 +254,15 @@ extern Vec owned_target;extern float saved_heading;extern B owned_shoot_goal;
 extern U input_state;extern Q rh_init,rh_push,rh_call;
 }
 struct Seen {U id=0;Q born=0;};
-struct Intent {Seen seen[64];int actor=-1,weapon=-1;B* frame=nullptr;Q steer_until=0;U reports=0;};
+struct Intent {Seen seen[64];int actor=-1,weapon=-1;B* frame=nullptr;Q steer_until=0;U reports=0,startup_id=0;Q startup_until=0;};
 Intent intent;
 static bool scoped(B* f){return mod_enabled&&input_enabled&&at<int>(f,0x768)>=0&&rifle(at<int>(f,0x76c));}
-static void reset_intent(){intent.actor=-1;intent.frame=nullptr;intent.steer_until=0;}
+static void reset_intent(){intent.actor=-1;intent.frame=nullptr;intent.steer_until=0;intent.startup_id=0;intent.startup_until=0;}
 extern "C" void MS longarm_queue(B* f,bool prune){
- if(!rifle(at<int>(f,0x76c))){reset_intent();original_queue(f,prune);return;}
+ if(!rifle(at<int>(f,0x76c))){reset_intent();handgun_queue(f,prune);return;}
  if(!scoped(f)){reset_intent();return;}
  const int a=at<int>(f,0x768),w=at<int>(f,0x76c);
- if(intent.actor!=a||intent.weapon!=w){for(auto& x:intent.seen)x.id=0;intent.actor=a;intent.weapon=w;intent.steer_until=0;}
+ if(intent.actor!=a||intent.weapon!=w){for(auto& x:intent.seen)x.id=0;intent.actor=a;intent.weapon=w;intent.steer_until=0;intent.startup_id=0;intent.startup_until=0;}
  intent.frame=f;
  Q& count=at<Q>(f,0x760);const Q head=at<Q>(f,0x758),now=at<Q>(f,0x40);
  if(count>64||head>=64)return;
@@ -323,9 +326,18 @@ extern "C" void MS longarm_controls(B* f){
  if(!scoped(f)||!(at<float>(f,0x828)>0.5f)||owned_actor!=at<int>(f,0x768)||choice.actor!=owned_actor||choice.weapon!=at<int>(f,0x76c)||!owned_expanded||owned_kind<0||owned_kind>3)return;
  longarm_queue(f,false);
  const Q now=at<Q>(f,0x40),count=at<Q>(f,0x760),head=at<Q>(f,0x758);
+ // The initial crouched raise/for-aim transition needs its own bounded
+ // startup window, measured from activation rather than queued click time.
+ // Continued shots do not prepare and never receive this grace.
+ const U active_id=at<U>(f,0x7cc);
+ if(at<B>(f,0x770)&&at<B>(f,0x775)&&owned_kind>=2&&intent.startup_id!=active_id){
+  intent.startup_id=active_id;intent.startup_until=at<Q>(f,0x7f0)+600;
+  log_event("longarm_crouch_prepare id=%u startup_ms=600",active_id);
+ }
+ const bool startup=owned_kind>=2&&intent.startup_id==active_id&&now<=intent.startup_until;
  if(at<B>(f,0x770)&&!at<B>(f,0x777)&&count&&count<=64&&head<64){
   U id=reinterpret_cast<Plan*>(f+0x158+head*24)->id;const Seen& seen=intent.seen[id&63];
-  if(seen.id==id&&now>=seen.born&&now-seen.born>400){
+  if(seen.id==id&&now>=seen.born&&now-seen.born>400&&!startup){
    if(owned_shoot_goal)clear_shoot_goal();
    at<Q>(f,0x758)=(head+1)&63;at<Q>(f,0x760)=count-1;
    for(U o=0x770;o<=0x777;++o)if(o!=0x772)at<B>(f,o)=0;
@@ -335,4 +347,35 @@ extern "C" void MS longarm_controls(B* f){
  }
  const bool fresh=refresh_target(f);
  if(at<B>(f,0x770)&&!at<B>(f,0x777)&&(!fresh||now<intent.steer_until||!aligned(owned_actor)))trigger_up(f);
+}
+
+
+struct HandgunResponsive {Seen seen[64];B live;};
+static_assert(sizeof(HandgunResponsive)==0x408);
+extern "C" HandgunResponsive baseline_responsive;
+extern "C" void MS handgun_queue(B* f,bool prune){
+ // Share the original moving/crouched queue's birth times across pose
+ // changes. Pistols and sawed-off keep their previous standing behavior.
+ if(owned_kind!=0||!revolver(at<int>(f,0x76c))){original_queue(f,prune);return;}
+ auto& responsive=baseline_responsive;
+ if(!mod_enabled||!input_enabled||!owned_expanded||owned_actor<0||at<int>(f,0x768)!=owned_actor){responsive.live=0;return;}
+ Q& count=at<Q>(f,0x760);const Q head=at<Q>(f,0x758),now=at<Q>(f,0x40);
+ if(count>64||head>=64)return;
+ if(!responsive.live){for(auto& x:responsive.seen)x.id=0;responsive.live=1;}
+ U kept=0,initial=static_cast<U>(count);
+ for(U i=0;i<initial;++i){
+  auto* p=reinterpret_cast<Plan*>(f+0x158+((head+i)&63)*24);
+  Seen& seen=responsive.seen[p->id&63];if(seen.id!=p->id){seen.id=p->id;seen.born=now;}
+  const bool active=i==0&&at<B>(f,0x770);
+  if(prune&&!active&&now-seen.born>400){log_event("responsive_expired id=%u age_ms=%llu kind=0",p->id,now-seen.born);continue;}
+  if(kept!=i)*reinterpret_cast<Plan*>(f+0x158+((head+kept)&63)*24)=*p;
+  ++kept;
+ }
+ count=kept;
+}
+extern "C" void MS uniform_heading(int actor,float heading,int flags){
+ // Only the initial standing-bridge call is redirected here. Let AIM
+ // turn the revolver actor as it already does in all three other poses.
+ if(revolver(weapon(actor))&&original_pose(actor)==0){log_event("revolver_standing actor=%d facing=aim_goal queue_policy=responsive_400ms",actor);return;}
+ original_heading(actor,heading,flags);
 }

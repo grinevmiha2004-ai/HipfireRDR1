@@ -10,7 +10,7 @@ syms=json.loads((R/'symbols.json').read_text())
 game=pefile.PE('/workspace/hipfire-reload/RDR.exe',fast_load=True)
 class HandgunTests(m.s.SeriesTests):
  def vm(self,*args,**kwargs):
-  v=super().vm(*args,**kwargs);v.callbacks[v.base+0xd870]=lambda:4;return v
+  v=super().vm(*args,**kwargs);v.callbacks[v.base+0xd870]=lambda:0;return v
 class LongarmTests(m.GuardTests):
  def call(self,v,name,*args):
   end=0x5000f000;sp=v.frame-8;v.q(sp,end);v.u.reg_write(UC_X86_REG_RSP,sp)
@@ -511,6 +511,63 @@ class LongarmTests(m.GuardTests):
   v=self.fixture(k=2);ptr,_=self.path(v,2);self.call(v,'select_node',42,ptr)
   v.i(v.nodes['crouch_rifle']+0x38,0x12345678)
   self.assertEqual(self.call(v,'playing_node',42,ptr),0)
+ def test_standing_fifo_preserved_for_same_timing(self):
+  for w in list(range(4))+[15]:
+   v=self.vm();v.i(v.frame+0x76c,w);self.put_queue(v,[1,2,3]);self.pre(v,1000);self.pre(v,5000)
+   self.assertEqual(self.queued_ids(v),[1,2,3])
+ def test_all_revolvers_standing_use_same_goal_start_without_extra_heading_command(self):
+  for w in range(4,8):
+   for k in range(4):
+    v=HandgunTests().vm(kind=k);self.fixture(w,k,v=v);v.run(0x5c94,0x5b3f)
+    self.assertEqual([c[0] for c in v.calls],['aim'])
+    self.assertEqual(v.old_nodes,[self.path(v,k)[1]])
+    self.assertEqual(v.geti(v.base+0x24080),k);self.assertEqual(v.u.mem_read(v.base+0x2407f,1),b'\0')
+ def test_standing_pistols_sawedoff_and_longarms_keep_existing_heading_command(self):
+  for w in list(range(4))+[9,13,15,17]:
+   v=HandgunTests().vm(kind=0);self.fixture(w,0,v=v);v.run(0x5c94,0x5b3f)
+   self.assertEqual([c[0] for c in v.calls],['heading','aim'])
+ def test_revolver_unstarted_clicks_expire_after_400ms_in_all_four_poses(self):
+  for w in range(4,8):
+   for k in range(4):
+    v=self.vm();v.i(v.frame+0x76c,w);v.i(v.base+0x24080,k);self.put_queue(v,[11,12])
+    self.pre(v,1000);self.pre(v,1400);self.assertEqual(self.queued_ids(v),[11,12])
+    self.pre(v,1401);self.assertEqual(self.queued_ids(v),[])
+ def test_revolver_queue_birth_times_survive_transitions_between_standing_and_movement(self):
+  v=self.vm();v.i(v.frame+0x76c,4);self.put_queue(v,[11,12]);v.b(v.frame+0x770,1)
+  self.pre(v,1000)
+  for now,k in [(1200,1),(1300,2),(1401,0)]:
+   v.i(v.base+0x24080,k);self.pre(v,now)
+  self.assertEqual(self.queued_ids(v),[11]);self.assertEqual(v.u.mem_read(v.frame+0x770,1),b'\1')
+ def crouch_startup_expiry_trial(self,old=False):
+  global syms
+  previous_image=m.s.old.PLUGIN_IMAGE;previous_syms=syms
+  try:
+   if old:
+    m.s.old.PLUGIN_IMAGE=pefile.PE('/workspace/hipfire-longarms10/output/HipfireRDR1.red').get_memory_mapped_image()
+    syms=json.loads(Path('/workspace/hipfire-longarms10/symbols.json').read_text())
+   v=self.intent_fixture(2);self.put_queue(v,[1]);self.call(v,'longarm_queue',v.frame,0)
+   v.q(v.frame+0x40,1187);v.q(v.frame+0x7f0,1187);v.b(v.frame+0x770,1);v.b(v.frame+0x775,1)
+   v.i(v.frame+0x7cc,1);self.call(v,'longarm_controls',v.frame)
+   v.b(v.frame+0x775,0);v.q(v.frame+0x40,1407);self.call(v,'longarm_controls',v.frame)
+   return v
+  finally:m.s.old.PLUGIN_IMAGE=previous_image;syms=previous_syms
+ def test_first_crouch_raise_survives_logged_queued_delay_but_has_fixed_startup_bound(self):
+  old=self.crouch_startup_expiry_trial(True);self.assertEqual(old.u.mem_read(old.frame+0x770,1),b'\0')
+  v=self.crouch_startup_expiry_trial();self.assertEqual(v.u.mem_read(v.frame+0x770,1),b'\1')
+  v.q(v.frame+0x40,1787);self.call(v,'longarm_controls',v.frame);self.assertEqual(v.u.mem_read(v.frame+0x770,1),b'\1')
+  v.q(v.frame+0x40,1788);self.call(v,'longarm_controls',v.frame);self.assertEqual(v.u.mem_read(v.frame+0x770,1),b'\0')
+ def test_crouched_continued_attempt_has_no_initial_raise_grace(self):
+  for k in [2,3]:
+   v=self.intent_fixture(k);self.put_queue(v,[1]);v.b(v.frame+0x770,1);v.b(v.frame+0x775,0);v.i(v.frame+0x7cc,1)
+   self.call(v,'longarm_controls',v.frame);v.q(v.frame+0x40,1401);self.call(v,'longarm_controls',v.frame)
+   self.assertEqual(v.u.mem_read(v.frame+0x770,1),b'\0')
+ def test_initial_crouch_grace_keeps_alignment_gate_and_does_not_preserve_backlog(self):
+  v=self.crouch_startup_expiry_trial();self.put_queue(v,[1,2]);self.call(v,'longarm_queue',v.frame,0)
+  v.q(v.frame+0x40,1660);self.call(v,'longarm_queue',v.frame,1);self.call(v,'longarm_controls',v.frame)
+  self.assertEqual(self.queued_ids(v),[1]);self.assertEqual(v.u.mem_read(v.frame+0x770,1),b'\1')
+  out=v.heap+0x21000;v.f(v.weapon+0x368,.28);self.call(v,'controlled_request',out,42)
+  self.assertEqual(v.request_calls,0);v.f(v.weapon+0x368,0);self.call(v,'controlled_request',out,42)
+  self.assertEqual(v.request_calls,1);self.assertEqual(v.geti(out),1)
  def test_final_pe_and_original_sections(self):
   original=pefile.PE('/workspace/hipfire-series4/output/HipfireRDR1.red');allowed=set()
   for patch in json.loads((R/'patch-report.json').read_text()):

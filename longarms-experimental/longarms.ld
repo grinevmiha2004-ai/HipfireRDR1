@@ -37,3 +37,6 @@ input_state = 0xf900;
 rh_init = 0x24030;
 rh_push = 0x24028;
 rh_call = 0x24020;
+
+baseline_responsive = 0x67040;
+original_heading = 0xd9a0;
