@@ -1,0 +1,8 @@
+[
+  {
+    "rva": "0x39b4",
+    "before": "e9f51b0600",
+    "after": "e9eb510600",
+    "reason": "observational F9 capture tick"
+  }
+]
