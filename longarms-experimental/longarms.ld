@@ -16,3 +16,10 @@ original_cancel = 0x1f80;
 owned_actor = 0xf7cc;
 owned_kind = 0x24080;
 owned_expanded = 0x2407e;
+
+original_aim = 0x15c0;
+owned_goal = 0x2407d;
+input_enabled = 0xf960;
+mod_enabled = 0xf7c8;
+release_at = 0x24060;
+original_tick = 0x655ae;

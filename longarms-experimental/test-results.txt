@@ -23,11 +23,14 @@ test_all_rifle_models_in_each_scoped_pose (__main__.LongarmTests.test_all_rifle_
 test_cancel_and_new_series_do_not_reuse_old_birth_time (__main__.LongarmTests.test_cancel_and_new_series_do_not_reuse_old_birth_time) ... ok
 test_cancelled_controls_and_heartbeat (__main__.LongarmTests.test_cancelled_controls_and_heartbeat) ... ok
 test_child_descendant_active_without_guessing_clip_names (__main__.LongarmTests.test_child_descendant_active_without_guessing_clip_names) ... ok
+test_confirmed_rifle_hold_spans_bolt_cycle_then_expires (__main__.LongarmTests.test_confirmed_rifle_hold_spans_bolt_cycle_then_expires) ... ok
 test_empty_or_expired_hold_clears_guard (__main__.LongarmTests.test_empty_or_expired_hold_clears_guard) ... ok
 test_experimental02_failure_reproduced_on_correct_namespace (__main__.LongarmTests.test_experimental02_failure_reproduced_on_correct_namespace) ... ok
 test_final_pe_and_original_sections (__main__.LongarmTests.test_final_pe_and_original_sections) ... ok
 test_four_pose_passthrough_policy_for_every_weapon (__main__.LongarmTests.test_four_pose_passthrough_policy_for_every_weapon) ... ok
 test_global_container_and_actor_chain_are_supported_as_root_fallbacks (__main__.LongarmTests.test_global_container_and_actor_chain_are_supported_as_root_fallbacks) ... ok
+test_hold_extension_stops_for_empty_crouched_cancelled_or_other_weapon (__main__.LongarmTests.test_hold_extension_stops_for_empty_crouched_cancelled_or_other_weapon) ... ok
+test_longarm_tick_bridge_preserves_registers_while_extending_live_attempt (__main__.LongarmTests.test_longarm_tick_bridge_preserves_registers_while_extending_live_attempt) ... ok
 test_mode_changes_within_existing_series (__main__.LongarmTests.test_mode_changes_within_existing_series) ... ok
 test_native_lookup_confirms_namespace_skips_initial_component (__main__.LongarmTests.test_native_lookup_confirms_namespace_skips_initial_component) ... ok
 test_native_selector_preserves_reference_count_and_nonvolatile_registers (__main__.LongarmTests.test_native_selector_preserves_reference_count_and_nonvolatile_registers) ... ok
@@ -41,12 +44,14 @@ test_real_autoreload_request_with_new_weapon_bookkeeping (__main__.LongarmTests.
 test_real_cover_preserves_its_original_result_for_all_weapons (__main__.LongarmTests.test_real_cover_preserves_its_original_result_for_all_weapons) ... ok
 test_real_start_branch_for_each_longarm_and_pose (__main__.LongarmTests.test_real_start_branch_for_each_longarm_and_pose) ... ok
 test_relocated_tree_resolver (__main__.LongarmTests.test_relocated_tree_resolver) ... ok
+test_reproduced_goal_replacement_is_repaired_only_after_initial_aim (__main__.LongarmTests.test_reproduced_goal_replacement_is_repaired_only_after_initial_aim) ... ok
 test_rifle_crouch_never_selects_a_hip_node_even_if_one_exists (__main__.LongarmTests.test_rifle_crouch_never_selects_a_hip_node_even_if_one_exists) ... ok
 test_sawedoff_and_original_handguns_keep_exact_pistol_routes (__main__.LongarmTests.test_sawedoff_and_original_handguns_keep_exact_pistol_routes) ... ok
 test_signature_or_existing_hook_not_overwritten (__main__.LongarmTests.test_signature_or_existing_hook_not_overwritten) ... ok
 test_slow_individual_clicks_do_not_expire_fresh_intent (__main__.LongarmTests.test_slow_individual_clicks_do_not_expire_fresh_intent) ... ok
 test_standing_fifo_preserved_for_same_timing (__main__.LongarmTests.test_standing_fifo_preserved_for_same_timing) ... ok
 test_standing_interval_restored_after_confirmation (__main__.LongarmTests.test_standing_interval_restored_after_confirmation) ... ok
+test_standing_prepare_unchanged_but_rifle_cycle_wait_survives_old_timeout (__main__.LongarmTests.test_standing_prepare_unchanged_but_rifle_cycle_wait_survives_old_timeout) ... ok
 test_standing_resolves_exact_recorded_path_despite_other_deadeye_variants (__main__.LongarmTests.test_standing_resolves_exact_recorded_path_despite_other_deadeye_variants) ... ok
 test_tampered_engine_code_layout_tree_and_nonlocal_actor_refuse (__main__.LongarmTests.test_tampered_engine_code_layout_tree_and_nonlocal_actor_refuse) ... ok
 test_transitions_between_four_poses_retain_correct_active_node (__main__.LongarmTests.test_transitions_between_four_poses_retain_correct_active_node) ... ok
@@ -54,12 +59,13 @@ test_unknown_weapon_transient_and_weapon_change_invalidate_cache (__main__.Longa
 test_unstarted_queue_expires_in_three_poses (__main__.LongarmTests.test_unstarted_queue_expires_in_three_poses) ... ok
 test_unsupported_pose_kinds_refuse_override (__main__.LongarmTests.test_unsupported_pose_kinds_refuse_override) ... ok
 test_waiting_head_is_never_expired (__main__.LongarmTests.test_waiting_head_is_never_expired) ... ok
+test_walking_prepare_and_cycle_deadlines_are_fixed_not_sliding (__main__.LongarmTests.test_walking_prepare_and_cycle_deadlines_are_fixed_not_sliding) ... ok
 test_walking_uses_same_hip_node_without_restarting_existing_animation (__main__.LongarmTests.test_walking_uses_same_hip_node_without_restarting_existing_animation) ... ok
 test_weapon_gate_keeps_nonfirearms_excluded (__main__.LongarmTests.test_weapon_gate_keeps_nonfirearms_excluded) ... ok
 test_winchester_uses_captured_path_and_real_selector_body (__main__.LongarmTests.test_winchester_uses_captured_path_and_real_selector_body) ... ok
 test_wrapped_fifo_compacts_and_original_pop_still_works (__main__.LongarmTests.test_wrapped_fifo_compacts_and_original_pop_still_works) ... ok
 
 ----------------------------------------------------------------------
-Ran 60 tests in 2.278s
+Ran 66 tests in 3.004s
 
 OK

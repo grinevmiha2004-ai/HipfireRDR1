@@ -220,6 +220,62 @@ class LongarmTests(m.GuardTests):
   def cancel():result.append(v.u.reg_read(UC_X86_REG_R8));return 0
   v.callbacks[v.base+0x1f80]=cancel
   self.call(v,'cancel_passthrough',v.frame+0x150,v.base+0x20644,1);self.assertEqual(result,[1])
+ def goal_replacement_start(self,image=None):
+  current=m.s.old.PLUGIN_IMAGE
+  try:
+   if image:m.s.old.PLUGIN_IMAGE=image
+   v=HandgunTests().vm(kind=1);self.fixture(13,1,v=v);original=v.callbacks[v.base+0x15c0];v.aim_count=0
+   def aim():
+    original();v.aim_count+=1
+    if v.aim_count==1:v.q(v.ctrl+0xb0,v.nodes['normal_standing'])
+    return 0
+   v.callbacks[v.base+0x15c0]=aim;v.run(0x5c94,0x5b3f);return v
+  finally:m.s.old.PLUGIN_IMAGE=current
+ def test_reproduced_goal_replacement_is_repaired_only_after_initial_aim(self):
+  old=pefile.PE('/workspace/hipfire-longarms4/output/HipfireRDR1.red').get_memory_mapped_image()
+  before=self.goal_replacement_start(old);self.assertEqual(before.getq(before.ctrl+0xb0),before.nodes['normal_standing'])
+  v=self.goal_replacement_start();self.assertEqual(v.getq(v.ctrl+0xb0),v.target)
+  self.assertEqual(self.call(v,'rapid_pose',42,1,0)&255,1)
+  calls=len(v.native_calls);self.call(v,'longarm_aim',42,v.frame+0x110)
+  self.assertEqual(v.aim_count,2);self.assertEqual(len(v.native_calls),calls)
+ def timed(self,kind=1):
+  v=self.fixture(13,kind);ptr,_=self.path(v,kind);self.call(v,'select_node',42,ptr)
+  v.i(v.base+0x24080,kind);v.i(v.frame+0x6c,13);v.i(v.frame+0x76c,13)
+  v.q(v.frame+0x40,1100);v.q(v.frame+0x7f0,1000);v.q(v.frame+0x7f8,1800);v.b(v.frame+0x770,1)
+  return v
+ def test_walking_prepare_and_cycle_deadlines_are_fixed_not_sliding(self):
+  v=self.timed();v.b(v.frame+0x775,1);v.q(v.frame+0x7b0,1300);v.q(v.frame+0x800,1234)
+  before=bytes(v.u.mem_read(v.weapon,0x600));self.call(v,'longarm_tick',v.frame)
+  self.assertEqual(v.getq(v.frame+0x7b0),1700);self.assertEqual(v.getq(v.frame+0x7f8),2600)
+  v.q(v.frame+0x40,1500);self.call(v,'longarm_tick',v.frame)
+  self.assertEqual(v.getq(v.frame+0x7b0),1700);self.assertEqual(v.getq(v.frame+0x7f8),2600)
+  self.assertEqual(v.getq(v.frame+0x800),1234);self.assertEqual(bytes(v.u.mem_read(v.weapon,0x600)),before)
+  v.q(v.frame+0x40,2800);self.call(v,'longarm_tick',v.frame);self.assertEqual(v.getq(v.frame+0x7f8),2600)
+ def test_standing_prepare_unchanged_but_rifle_cycle_wait_survives_old_timeout(self):
+  v=self.timed(0);v.b(v.frame+0x775,1);v.q(v.frame+0x7b0,1300)
+  self.call(v,'longarm_tick',v.frame);self.assertEqual(v.getq(v.frame+0x7b0),1300)
+  v.q(v.frame+0x40,1900);v.run(0x430e,0x4321) # actual original deadline branch still waits
+  v.q(v.frame+0x40,2700);v.run(0x430e,0x5998) # bounded expiry still takes the original failure route
+ def test_confirmed_rifle_hold_spans_bolt_cycle_then_expires(self):
+  v=self.timed(0);v.b(v.frame+0x770,0);v.q(v.frame+0x788,1000);v.q(v.base+0x24060,1750)
+  self.call(v,'longarm_tick',v.frame);self.assertEqual(v.getq(v.base+0x24060),2800)
+  v.q(v.frame+0x40,2000);self.call(v,'longarm_tick',v.frame);self.assertEqual(v.getq(v.base+0x24060),2800)
+  v.q(v.frame+0x40,3000);self.call(v,'longarm_tick',v.frame);self.assertEqual(v.getq(v.base+0x24060),2800)
+ def test_hold_extension_stops_for_empty_crouched_cancelled_or_other_weapon(self):
+  for change in [lambda v:v.f(v.frame+0x828,0),lambda v:v.i(v.base+0x24080,2),lambda v:v.b(v.base+0xf960,0),lambda v:v.i(v.frame+0x76c,4)]:
+   v=self.timed(0);v.b(v.frame+0x770,0);v.q(v.frame+0x788,1000);v.q(v.base+0x24060,1750);change(v)
+   before=bytes(v.u.mem_read(v.frame,0x900));self.call(v,'longarm_tick',v.frame)
+   self.assertEqual(v.getq(v.base+0x24060),1750);self.assertEqual(bytes(v.u.mem_read(v.frame,0x900)),before)
+ def test_longarm_tick_bridge_preserves_registers_while_extending_live_attempt(self):
+  v=self.timed();v.b(v.frame+0x775,1);v.q(v.frame+0x7b0,1300)
+  regs=[UC_X86_REG_RAX,UC_X86_REG_RBX,UC_X86_REG_RCX,UC_X86_REG_RDX,UC_X86_REG_RSI,UC_X86_REG_RDI,UC_X86_REG_RBP,UC_X86_REG_R8,UC_X86_REG_R9,UC_X86_REG_R10,UC_X86_REG_R11,UC_X86_REG_R12,UC_X86_REG_R13,UC_X86_REG_R14,UC_X86_REG_R15]
+  for i,r in enumerate(regs):v.u.reg_write(r,0x123456780000+i)
+  for i in range(16):v.u.reg_write(UC_X86_REG_XMM0+i,(1<<100)+i)
+  before=[v.u.reg_read(r) for r in regs];xmms=[v.u.reg_read(UC_X86_REG_XMM0+i) for i in range(16)]
+  v.tick();self.assertEqual(before,[v.u.reg_read(r) for r in regs]);self.assertEqual(xmms,[v.u.reg_read(UC_X86_REG_XMM0+i) for i in range(16)])
+  self.assertEqual(v.getq(v.frame+0x7b0),1700);self.assertEqual(v.getq(v.frame+0x7f8),2600)
+  entry=next(e.struct for e in p.DIRECTORY_ENTRY_EXCEPTION if e.struct.BeginAddress==syms['longarm_bridge'][0])
+  self.assertEqual(p.get_data(entry.UnwindData,1)[0],0x21)
  def test_final_pe_and_original_sections(self):
   original=pefile.PE('/workspace/hipfire-series4/output/HipfireRDR1.red');allowed=set()
   for patch in json.loads((R/'patch-report.json').read_text()):

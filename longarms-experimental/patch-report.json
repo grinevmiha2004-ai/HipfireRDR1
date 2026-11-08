@@ -20,103 +20,127 @@
   {
     "rva": "0x1f5c",
     "before": "d0b70000",
-    "after": "d0670600",
+    "after": "306a0600",
     "reason": "select_node"
   },
   {
     "rva": "0x261d",
     "before": "cfb10000",
-    "after": "5f690600",
+    "after": "3f690600",
     "reason": "playing_node"
   },
   {
     "rva": "0x2656",
     "before": "16b40000",
-    "after": "86690600",
+    "after": "66690600",
     "reason": "rapid_pose"
   },
   {
     "rva": "0x2805",
     "before": "e7af0000",
-    "after": "77670600",
+    "after": "57670600",
     "reason": "playing_node"
   },
   {
     "rva": "0x43d5",
     "before": "57930000",
-    "after": "57430600",
+    "after": "b7450600",
     "reason": "select_node"
   },
   {
     "rva": "0x4a24",
     "before": "48900000",
-    "after": "b8450600",
+    "after": "98450600",
     "reason": "rapid_pose"
   },
   {
     "rva": "0x586d",
     "before": "bf7e0000",
-    "after": "bf2e0600",
+    "after": "1f310600",
     "reason": "select_node"
   },
   {
     "rva": "0x593c",
     "before": "30810000",
-    "after": "a0360600",
+    "after": "80360600",
     "reason": "rapid_pose"
+  },
+  {
+    "rva": "0x5ac8",
+    "before": "f4baffff",
+    "after": "54350600",
+    "reason": "longarm_aim"
   },
   {
     "rva": "0x5cdc",
     "before": "507a0000",
-    "after": "502a0600",
+    "after": "b02c0600",
     "reason": "select_node"
+  },
+  {
+    "rva": "0x5d62",
+    "before": "5ab8ffff",
+    "after": "ba320600",
+    "reason": "longarm_aim"
   },
   {
     "rva": "0x5dc6",
     "before": "66790000",
-    "after": "66290600",
+    "after": "c62b0600",
     "reason": "select_node"
   },
   {
     "rva": "0x5f02",
     "before": "2a780000",
-    "after": "2a280600",
+    "after": "8a2a0600",
     "reason": "select_node"
   },
   {
     "rva": "0x60f9",
     "before": "33760000",
-    "after": "33260600",
+    "after": "93280600",
     "reason": "select_node"
   },
   {
     "rva": "0x612c",
     "before": "00760000",
-    "after": "00260600",
+    "after": "60280600",
     "reason": "select_node"
   },
   {
     "rva": "0x615f",
     "before": "cd750000",
-    "after": "cd250600",
+    "after": "2d280600",
     "reason": "select_node"
+  },
+  {
+    "rva": "0x619b",
+    "before": "21b4ffff",
+    "after": "812e0600",
+    "reason": "longarm_aim"
   },
   {
     "rva": "0x6400c",
     "before": "2097faff",
-    "after": "20470000",
+    "after": "80490000",
     "reason": "select_node"
   },
   {
     "rva": "0x4025",
     "before": "c7980000",
-    "after": "17500600",
+    "after": "57520600",
     "reason": "should_passthrough"
   },
   {
     "rva": "0x4763",
     "before": "19d8ffff",
-    "after": "39490600",
+    "after": "794b0600",
     "reason": "cancel_passthrough"
+  },
+  {
+    "rva": "0x39b4",
+    "before": "e9f51b0600",
+    "after": "e962590600",
+    "reason": "bounded longarm timing tick"
   }
 ]

@@ -4,7 +4,8 @@ extern "C" {
 int MS original_select(int,const char*);int MS original_playing(int,const char*);
 int MS original_weapon(int);int MS original_pose(int);int MS original_cover(int);
 void MS original_cancel(void*,const char*,bool);
-extern int owned_actor,owned_kind;extern B owned_expanded;bool MS original_rapid(U,bool,bool);
+extern int owned_actor,owned_kind;extern B owned_expanded,owned_goal,input_enabled,mod_enabled;extern Q release_at;
+void MS original_aim(int,void*);bool MS original_rapid(U,bool,bool);
 Q MS actor_from(Q,U);Q MS read_pointer(Q);
 extern Q game_image,iat_rpm;
 void MS log_event(const char*,...);
@@ -16,11 +17,11 @@ template<class T>T value(Q p){T result{};read(p,&result,sizeof(result));return r
 static Q ptr(Q p){return value<Q>(p);}
 static bool eq(const char* a,const char* b){if(!a||!b)return false;while(*a&&*a==*b){++a;++b;}return *a==*b;}
 static bool rifle(int w){return w>=8&&w<=20&&w!=15;} // Capture: sawed-off uses Pistol/DeadEye.
-struct Choice {int actor=-1,weapon=-1;Q nodes[4]{};U refused=0;B crouch_passthrough=0;};
+struct Choice {int actor=-1,weapon=-1;Q nodes[4]{};U refused=0;B crouch_passthrough=0,after_goal=0;Q prepare_value=0,confirmation=0,hold_until=0;};
 Choice choice;
 static int weapon(int actor){
  int w=original_weapon(actor);
- if(w>=0){if(choice.actor!=actor||choice.weapon!=w){choice.actor=actor;choice.weapon=w;for(auto& p:choice.nodes)p=0;choice.refused=0;}return w;}
+ if(w>=0){if(choice.actor!=actor||choice.weapon!=w){choice.actor=actor;choice.weapon=w;for(auto& p:choice.nodes)p=0;choice.refused=0;choice.after_goal=0;choice.prepare_value=choice.confirmation=choice.hold_until=0;}return w;}
  return w==-1&&choice.actor==actor?choice.weapon:-1;
 }
 static int kind(const char* path){
@@ -123,6 +124,7 @@ extern "C" int MS select_node(int actor,const char* path){
  }
  if(!same&&!select_resolved(owner,target)){choice.nodes[k]=0;return 0;}
  choice.nodes[k]=target;
+ choice.after_goal=(k==1&&!owned_goal);
  log_event("longarm_resolve ready actor=%d weapon=%d kind=%d node_hash=%08x",actor,w,k,n.hash);return 1;
 }
 static bool active(int actor,U k){
@@ -146,6 +148,41 @@ extern "C" int MS playing_node(int actor,const char* path){
 extern "C" bool MS rapid_pose(U actor,bool moving,bool crouched){
  if(!rifle(weapon(static_cast<int>(actor))))return original_rapid(actor,moving,crouched);
  return active(static_cast<int>(actor),(moving?1U:0U)+(crouched?2U:0U));
+}
+extern "C" void MS longarm_aim(int actor,void* target){
+ original_aim(actor,target);
+ if(!choice.after_goal)return;
+ choice.after_goal=0;
+ if(choice.actor!=actor||!rifle(choice.weapon)||owned_actor!=actor||owned_kind!=1||!owned_expanded)return;
+ Q selected=choice.nodes[1],owner=owner_for(actor);Node n{};
+ if(!selected||!owner||!node(selected,n)||!signature())return;
+ // Initial AIM goal can replace a just-selected action node in locomotion.
+ // Reassert once AFTER that goal; do not re-enter on each continued shot.
+ if(select_resolved(owner,selected))log_event("longarm_after_goal actor=%d reapplied_once=1",actor);
+}
+template<class T>T& at(B* f,U o){return *reinterpret_cast<T*>(f+o);}
+extern "C" void MS longarm_tick(B* f){
+ const int actor=at<int>(f,0x768),w=at<int>(f,0x76c);
+ if(!mod_enabled||!input_enabled||!rifle(w)||owned_actor!=actor||choice.actor!=actor||choice.weapon!=w||!owned_expanded||owned_kind<0||owned_kind>1||!(at<float>(f,0x828)>0.5f)){
+  choice.prepare_value=choice.confirmation=choice.hold_until=0;return;
+ }
+ const Q now=at<Q>(f,0x40),confirmed=at<Q>(f,0x788);
+ if(confirmed&&confirmed!=choice.confirmation&&now>=confirmed&&now-confirmed<=1000){
+  choice.confirmation=confirmed;choice.hold_until=confirmed+1800;
+ }
+ if(at<B>(f,0x770)){
+  // The supplied bolt-action log cycles for roughly one second. Wait for
+  // that real cycle; never alter weapon cooldown, ammo or request checks.
+  Q wanted=at<Q>(f,0x7f0)+1600;
+  if(at<Q>(f,0x7f8)<wanted)at<Q>(f,0x7f8)=wanted;
+  if(owned_kind==1&&at<B>(f,0x775)){
+   Q& until=at<Q>(f,0x7b0);
+   if(until>=300&&until!=choice.prepare_value){until=until-300+700;choice.prepare_value=until;log_event("longarm_prepare actor=%d window_ms=700",actor);}
+  }else choice.prepare_value=0;
+ }else choice.prepare_value=0;
+ // A bounded hold spans the slow rifle cycle and the next physical click.
+ // No click is generated, and empty clips/crouch/cancel end this extension.
+ if(now<choice.hold_until&&release_at<choice.hold_until)release_at=choice.hold_until;
 }
 // This predicate replaces only the mod's early cover-passthrough check.
 // It never changes the game's cover state or fabricates mouse input.
