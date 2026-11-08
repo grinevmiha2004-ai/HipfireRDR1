@@ -147,6 +147,14 @@ static bool active(int actor,U k){
  if(k>=4)return false;
  Q expected=choice.nodes[k];if(!expected)return false;
  Node target{};if(!node(expected,target))return false;
+ if(k>=2){
+  // Ordinary AIM legitimately leaves RifleHold for the sibling for-aim
+  // and firing actions in CrouchRifle. Scope readiness to that verified
+  // ordinary rifle subtree, not to the initially selected Hold composite.
+  Node family{};Q root=target.parent;
+  if(target.hash!=0x0139c40dU||!node(root,family)||family.hash!=0xbe49465cU||child(root,0x0139c40dU)!=expected)return false;
+  expected=root;
+ }
  Q owner=owner_for(actor),controller=owner?ptr(owner+0xb0):0;
  Q current=controller?ptr(controller+0xb0):0;
  for(U depth=0;current&&depth<24;++depth){

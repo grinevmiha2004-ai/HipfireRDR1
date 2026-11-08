@@ -51,6 +51,9 @@ test_native_lookup_confirms_namespace_skips_initial_component (__main__.LongarmT
 test_native_selector_preserves_reference_count_and_nonvolatile_registers (__main__.LongarmTests.test_native_selector_preserves_reference_count_and_nonvolatile_registers) ... ok
 test_new_aim_waits_for_engine_update_and_full_alignment_before_request (__main__.LongarmTests.test_new_aim_waits_for_engine_update_and_full_alignment_before_request) ... ok
 test_normal_cover_does_not_take_the_new_full_release_path (__main__.LongarmTests.test_normal_cover_does_not_take_the_new_full_release_path) ... ok
+test_ordinary_crouch_ready_handoff_reaches_actual_request_callsite (__main__.LongarmTests.test_ordinary_crouch_ready_handoff_reaches_actual_request_callsite) ... ok
+test_ordinary_crouch_scope_excludes_other_weapon_trees (__main__.LongarmTests.test_ordinary_crouch_scope_excludes_other_weapon_trees) ... ok
+test_ordinary_crouch_scope_requires_validated_parent_relationship (__main__.LongarmTests.test_ordinary_crouch_scope_requires_validated_parent_relationship) ... ok
 test_original_positive_result_preserved (__main__.LongarmTests.test_original_positive_result_preserved) ... ok
 test_original_release_root_and_native_create_failure (__main__.LongarmTests.test_original_release_root_and_native_create_failure) ... ok
 test_override_real_predicate_for_local_actor_only (__main__.LongarmTests.test_override_real_predicate_for_local_actor_only) ... ok
@@ -64,6 +67,7 @@ test_real_start_branch_for_each_longarm_and_pose (__main__.LongarmTests.test_rea
 test_reload_confirmation_actor_also_comes_from_stable_controls (__main__.LongarmTests.test_reload_confirmation_actor_also_comes_from_stable_controls) ... ok
 test_reload_uses_stable_weapon_after_actual_scratch_clobber (__main__.LongarmTests.test_reload_uses_stable_weapon_after_actual_scratch_clobber) ... ok
 test_relocated_tree_resolver (__main__.LongarmTests.test_relocated_tree_resolver) ... ok
+test_reproduced_09_crouch_for_aim_handoff_no_longer_blocks_shoot_goal (__main__.LongarmTests.test_reproduced_09_crouch_for_aim_handoff_no_longer_blocks_shoot_goal) ... ok
 test_reproduced_goal_replacement_is_repaired_only_after_initial_aim (__main__.LongarmTests.test_reproduced_goal_replacement_is_repaired_only_after_initial_aim) ... ok
 test_reproduces_old_autoreload_failure_with_reused_weapon_local (__main__.LongarmTests.test_reproduces_old_autoreload_failure_with_reused_weapon_local) ... ok
 test_rifle_crouch_selects_ordinary_branch_instead_of_unrelated_deadeye (__main__.LongarmTests.test_rifle_crouch_selects_ordinary_branch_instead_of_unrelated_deadeye) ... ok
@@ -89,6 +93,6 @@ test_winchester_uses_captured_path_and_real_selector_body (__main__.LongarmTests
 test_wrapped_fifo_compacts_and_original_pop_still_works (__main__.LongarmTests.test_wrapped_fifo_compacts_and_original_pop_still_works) ... ok
 
 ----------------------------------------------------------------------
-Ran 89 tests in 4.492s
+Ran 93 tests in 4.773s
 
 OK

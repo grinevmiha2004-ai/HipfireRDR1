@@ -468,6 +468,49 @@ class LongarmTests(m.GuardTests):
    v.callbacks[v.base+0x15c0]=aim;v.run(0x5c94,0x5b3f)
    self.assertEqual(v.getq(v.ctrl+0xb0),v.nodes['crouch_hold'])
    self.assertEqual(self.call(v,'rapid_pose',42,k&1,1)&255,1)
+ def crouch_for_aim_trial(self,k,old=False):
+  global syms
+  previous_image=m.s.old.PLUGIN_IMAGE;previous_syms=syms
+  try:
+   if old:
+    m.s.old.PLUGIN_IMAGE=pefile.PE('/workspace/hipfire-longarms9/output/HipfireRDR1.red').get_memory_mapped_image()
+    syms=json.loads(Path('/workspace/hipfire-longarms9/symbols.json').read_text())
+   v=HandgunTests().vm(kind=k);self.fixture(13,k,v=v);v.run(0x5c94,0x5b3f)
+   aim=v.add('ordinary_for_aim',0x98e67a1b,v.nodes['crouch_rifle'])
+   leaf=v.add('ordinary_for_aim_leaf',0x3c80d611,aim);v.q(v.ctrl+0xb0,leaf)
+   v.i(v.frame+0x76c,13);v.b(v.frame+0x775,1);v.i(v.frame+0x7a4,0);v.i(v.frame+0x7d0,2)
+   v.q(v.frame+0x7b0,1300);v.b(v.base+0x2407c,0);v.calls=[]
+   for now in [1016,1032]:
+    v.q(v.frame+0x40,now);v.run(0x5919,0x4406)
+   return v
+  finally:m.s.old.PLUGIN_IMAGE=previous_image;syms=previous_syms
+ def test_reproduced_09_crouch_for_aim_handoff_no_longer_blocks_shoot_goal(self):
+  for k in [2,3]:
+   old=self.crouch_for_aim_trial(k,True)
+   self.assertEqual(old.geti(old.frame+0x7a4),0);self.assertEqual(old.u.mem_read(old.frame+0x775,1),b'\1')
+   self.assertEqual([c for c in old.calls if c[0]=='shoot_goal'],[])
+   v=self.crouch_for_aim_trial(k)
+   self.assertEqual(v.geti(v.frame+0x7a4),2);self.assertEqual(v.u.mem_read(v.frame+0x775,1),b'\0')
+   self.assertEqual(v.u.mem_read(v.frame+0x771,1),b'\1')
+   self.assertEqual(len([c for c in v.calls if c[0]=='shoot_goal']),1)
+ def test_ordinary_crouch_ready_handoff_reaches_actual_request_callsite(self):
+  for k in [2,3]:
+   v=self.crouch_for_aim_trial(k);self.call(v,'longarm_queue',v.frame,0)
+   v.request_calls=0
+   def request():
+    v.request_calls+=1;out=v.u.reg_read(UC_X86_REG_RCX)
+    v.u.mem_write(out,struct.pack('<iiff',1,8,-1,0));return out
+   v.callbacks[v.base+0xd3f0]=request;v.q(v.frame+0xa8,v.frame+0xd0)
+   v.run(0x4c1f,0x4c30)
+   self.assertEqual(v.request_calls,1);self.assertEqual(v.geti(v.frame+0xd0),1)
+ def test_ordinary_crouch_scope_excludes_other_weapon_trees(self):
+  v=self.fixture(k=2);ptr,_=self.path(v,2);self.call(v,'select_node',42,ptr)
+  for name in ['normal_standing','crouched','crouched_moving','standing']:
+   v.q(v.ctrl+0xb0,v.nodes[name]);self.assertEqual(self.call(v,'playing_node',42,ptr),0)
+ def test_ordinary_crouch_scope_requires_validated_parent_relationship(self):
+  v=self.fixture(k=2);ptr,_=self.path(v,2);self.call(v,'select_node',42,ptr)
+  v.i(v.nodes['crouch_rifle']+0x38,0x12345678)
+  self.assertEqual(self.call(v,'playing_node',42,ptr),0)
  def test_final_pe_and_original_sections(self):
   original=pefile.PE('/workspace/hipfire-series4/output/HipfireRDR1.red');allowed=set()
   for patch in json.loads((R/'patch-report.json').read_text()):

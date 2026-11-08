@@ -83,6 +83,22 @@
       "be49465c",
       "0139c40d"
     ],
+    "readiness_scope": [
+      "bd701184",
+      "892a3c35",
+      "2751a740",
+      "92133daf",
+      "be49465c"
+    ],
+    "ordinary_for_aim_handoff": [
+      "bd701184",
+      "892a3c35",
+      "2751a740",
+      "92133daf",
+      "be49465c",
+      "98e67a1b",
+      "3c80d611"
+    ],
     "ordinary_pose_children": [
       "61d07327",
       "7d2d38e8",
