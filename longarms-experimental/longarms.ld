@@ -23,3 +23,5 @@ input_enabled = 0xf960;
 mod_enabled = 0xf7c8;
 release_at = 0x24060;
 original_tick = 0x655ae;
+
+reload_pending = 0x63000;

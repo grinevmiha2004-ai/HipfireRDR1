@@ -17,7 +17,7 @@ def patch(rva,before,after,reason):
 # SDK firearm IDs 0..20; lasso/melee/throwables/turrets remain excluded.
 for rva in [0x3a71,0x404b,0x4a6f]:patch(rva,b'\x07',b'\x14','weapon limit 7 -> 20')
 cs=capstone.Cs(capstone.CS_ARCH_X86,capstone.CS_MODE_64);cs.detail=True
-redirect={0xd730:'select_node',0xd7f0:'playing_node',0xda70:'rapid_pose',0x15c0:'longarm_aim'};seen=set();counts={k:0 for k in redirect}
+redirect={0xd730:'select_node',0xd7f0:'playing_node',0xda70:'rapid_pose',0x15c0:'longarm_aim',0x620f0:'mark_empty_stable'};seen=set();counts={k:0 for k in redirect}
 for e in p.DIRECTORY_ENTRY_EXCEPTION:
  start=e.struct.BeginAddress;end=e.struct.EndAddress
  for i in cs.disasm(p.get_data(start,end-start),start):

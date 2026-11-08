@@ -120,6 +120,12 @@
     "reason": "longarm_aim"
   },
   {
+    "rva": "0x625fb",
+    "before": "f1faffff",
+    "after": "016d0000",
+    "reason": "mark_empty_stable"
+  },
+  {
     "rva": "0x6400c",
     "before": "2097faff",
     "after": "80490000",
@@ -140,7 +146,7 @@
   {
     "rva": "0x39b4",
     "before": "e9f51b0600",
-    "after": "e962590600",
+    "after": "e9e7590600",
     "reason": "bounded longarm timing tick"
   }
 ]

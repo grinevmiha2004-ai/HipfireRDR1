@@ -200,4 +200,17 @@ extern "C" void MS cancel_passthrough(void* controls,const char* reason,bool kee
  const bool normal=choice.crouch_passthrough!=0;
  original_cancel(controls,normal?"longarm_crouch_passthrough":reason,normal?false:keep);
 }
+struct ReloadPending {int actor,weapon;Q since,next;};
+extern "C" ReloadPending reload_pending;
+extern "C" void MS mark_empty_stable(B* f){
+ float ammo;asm("movss %%xmm6,%0":"=m"(ammo));
+ union {float f;U u;} bits{ammo};
+ if((bits.u&0x7f800000U)==0x7f800000U||!(ammo>=0&&ammo<=0.5f))return;
+ // +68/+6C are scratch locals by the confirmation branch: +6C has
+ // already been reused for position_valid. Controls at +768/+76C are
+ // the stable actor/weapon pair used by the subsequent reload tick.
+ reload_pending.actor=at<int>(f,0x768);reload_pending.weapon=at<int>(f,0x76c);
+ reload_pending.since=at<Q>(f,0x40);reload_pending.next=reload_pending.since;
+ if(reload_pending.weapon>=8&&reload_pending.weapon<=20)log_event("autoreload armed actor=%d weapon=%d stable_state=1",reload_pending.actor,reload_pending.weapon);
+}
 #include "signature.hpp"

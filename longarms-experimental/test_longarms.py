@@ -276,6 +276,26 @@ class LongarmTests(m.GuardTests):
   self.assertEqual(v.getq(v.frame+0x7b0),1700);self.assertEqual(v.getq(v.frame+0x7f8),2600)
   entry=next(e.struct for e in p.DIRECTORY_ENTRY_EXCEPTION if e.struct.BeginAddress==syms['longarm_bridge'][0])
   self.assertEqual(p.get_data(entry.UnwindData,1)[0],0x21)
+ def test_reload_uses_stable_weapon_after_actual_scratch_clobber(self):
+  for w in range(21):
+   for flag in [0,1]:
+    v=m.s.old.VM();v.i(v.frame+0x6c,w);v.i(v.frame+0x76c,w)
+    v.run(0x427b,0x4280) # actual original instruction reuses low byte of weapon scratch
+    if flag:v.b(v.frame+0x6c,1)
+    v.real_engine();v.mark();self.assertEqual(v.geti(v.base+0x63004),w)
+    v.tick();self.assertEqual(v.requests,1);self.assertEqual(v.pending(),-1)
+ def test_reproduces_old_autoreload_failure_with_reused_weapon_local(self):
+  current=m.s.old.PLUGIN_IMAGE
+  try:
+   m.s.old.PLUGIN_IMAGE=pefile.PE('/workspace/hipfire-longarms5/output/HipfireRDR1.red').get_memory_mapped_image()
+   v=m.s.old.VM();v.i(v.frame+0x6c,13);v.i(v.frame+0x76c,13);v.run(0x427b,0x4280)
+   v.real_engine();v.mark();self.assertEqual(v.geti(v.base+0x63004),0)
+   v.tick();self.assertEqual(v.requests,0)
+  finally:m.s.old.PLUGIN_IMAGE=current
+  v=m.s.old.VM();v.i(v.frame+0x6c,13);v.i(v.frame+0x76c,13);v.run(0x427b,0x4280)
+  v.real_engine();v.mark();v.tick();self.assertEqual(v.requests,1)
+ def test_reload_confirmation_actor_also_comes_from_stable_controls(self):
+  v=m.s.old.VM();v.i(v.frame+0x68,99);v.mark();self.assertEqual(v.pending(),42)
  def test_final_pe_and_original_sections(self):
   original=pefile.PE('/workspace/hipfire-series4/output/HipfireRDR1.red');allowed=set()
   for patch in json.loads((R/'patch-report.json').read_text()):

@@ -43,8 +43,11 @@ test_preparing_active_shot_keeps_permission_in_all_poses (__main__.LongarmTests.
 test_real_autoreload_request_with_new_weapon_bookkeeping (__main__.LongarmTests.test_real_autoreload_request_with_new_weapon_bookkeeping) ... ok
 test_real_cover_preserves_its_original_result_for_all_weapons (__main__.LongarmTests.test_real_cover_preserves_its_original_result_for_all_weapons) ... ok
 test_real_start_branch_for_each_longarm_and_pose (__main__.LongarmTests.test_real_start_branch_for_each_longarm_and_pose) ... ok
+test_reload_confirmation_actor_also_comes_from_stable_controls (__main__.LongarmTests.test_reload_confirmation_actor_also_comes_from_stable_controls) ... ok
+test_reload_uses_stable_weapon_after_actual_scratch_clobber (__main__.LongarmTests.test_reload_uses_stable_weapon_after_actual_scratch_clobber) ... ok
 test_relocated_tree_resolver (__main__.LongarmTests.test_relocated_tree_resolver) ... ok
 test_reproduced_goal_replacement_is_repaired_only_after_initial_aim (__main__.LongarmTests.test_reproduced_goal_replacement_is_repaired_only_after_initial_aim) ... ok
+test_reproduces_old_autoreload_failure_with_reused_weapon_local (__main__.LongarmTests.test_reproduces_old_autoreload_failure_with_reused_weapon_local) ... ok
 test_rifle_crouch_never_selects_a_hip_node_even_if_one_exists (__main__.LongarmTests.test_rifle_crouch_never_selects_a_hip_node_even_if_one_exists) ... ok
 test_sawedoff_and_original_handguns_keep_exact_pistol_routes (__main__.LongarmTests.test_sawedoff_and_original_handguns_keep_exact_pistol_routes) ... ok
 test_signature_or_existing_hook_not_overwritten (__main__.LongarmTests.test_signature_or_existing_hook_not_overwritten) ... ok
@@ -66,6 +69,6 @@ test_winchester_uses_captured_path_and_real_selector_body (__main__.LongarmTests
 test_wrapped_fifo_compacts_and_original_pop_still_works (__main__.LongarmTests.test_wrapped_fifo_compacts_and_original_pop_still_works) ... ok
 
 ----------------------------------------------------------------------
-Ran 66 tests in 3.004s
+Ran 69 tests in 3.066s
 
 OK
