@@ -2,7 +2,9 @@ using U=unsigned;using Q=unsigned long long;using B=unsigned char;
 #define MS __attribute__((ms_abi))
 extern "C" {
 int MS original_select(int,const char*);int MS original_playing(int,const char*);
-int MS original_weapon(int);bool MS original_rapid(U,bool,bool);
+int MS original_weapon(int);int MS original_pose(int);int MS original_cover(int);
+void MS original_cancel(void*,const char*,bool);
+extern int owned_actor,owned_kind;extern B owned_expanded;bool MS original_rapid(U,bool,bool);
 Q MS actor_from(Q,U);Q MS read_pointer(Q);
 extern Q game_image,iat_rpm;
 void MS log_event(const char*,...);
@@ -14,7 +16,7 @@ template<class T>T value(Q p){T result{};read(p,&result,sizeof(result));return r
 static Q ptr(Q p){return value<Q>(p);}
 static bool eq(const char* a,const char* b){if(!a||!b)return false;while(*a&&*a==*b){++a;++b;}return *a==*b;}
 static bool rifle(int w){return w>=8&&w<=20&&w!=15;} // Capture: sawed-off uses Pistol/DeadEye.
-struct Choice {int actor=-1,weapon=-1;Q nodes[4]{};U refused=0;};
+struct Choice {int actor=-1,weapon=-1;Q nodes[4]{};U refused=0;B crouch_passthrough=0;};
 Choice choice;
 static int weapon(int actor){
  int w=original_weapon(actor);
@@ -41,14 +43,6 @@ static Q child(Q p,U hash){
  for(U i=0;i<n.count;++i){Q c=ptr(n.children+i*8ULL);Node x{};if(node(c,x)&&x.parent==p&&x.hash==hash)return c;}
  return 0;
 }
-static Q find(Q p,Q parent,U hash,bool deadeye,U depth,U& budget,Q& found,U& matches){
- if(!budget||depth>20)return 0;
- --budget;Node n{};if(!node(p,n)||n.parent!=parent)return 0;
- deadeye=deadeye||n.hash==0xbcacd642U||n.hash==0x122ac9f4U; // RifleDeadEye / DeadEye
- if(n.hash==hash&&deadeye){found=p;++matches;return p;}
- for(U i=0;i<n.count&&budget&&matches<2;++i)find(ptr(n.children+i*8ULL),p,hash,deadeye,depth+1,budget,found,matches);
- return found;
-}
 struct ResolveInfo {U stage=0,root_hash=0,matches=0;};
 static Q resolve(U k,Q owner,ResolveInfo& info){
  Q base=ptr(game_image+0x2ab5e78);Node root{};
@@ -72,19 +66,12 @@ static Q resolve(U k,Q owner,ResolveInfo& info){
   }
  }
  if(!base){info.stage=1;return 0;}
- if(k==0){
+ if(k<2){
   // Exact chain captured during the native Winchester Dead Eye shot.
   Q target=child(child(child(child(child(base,0x18e67533U),0x840a9c18U),0xbcacd642U),0xafd53e15U),0x61d07327U);
   info.stage=target?0:2;info.matches=target?1:0;return target;
  }
- Q scope=k==1?child(base,0xf6ad55f0U):child(child(base,0x892a3c35U),0x2751a740U);
- if(!scope){info.stage=3;return 0;}
- Node scope_node{};if(!node(scope,scope_node)){info.stage=4;return 0;}
- U budget=4096,matches=0;Q found=0;
- find(scope,scope_node.parent,(k&1)?0x7e84a609U:0x61d07327U,false,0,budget,found,matches);
- info.matches=matches;
- if(matches!=1||!budget){info.stage=5;return 0;}
- return found;
+ info.stage=3;return 0;
 }
 static bool signature(){
  // Build-specific bodies used by the native action-node selector, and
@@ -129,11 +116,17 @@ extern "C" int MS select_node(int actor,const char* path){
  // Native selector reads this slot and invokes +0x88 on the resolved node.
  Q create=ptr(n.vt+0x88);
  if(!((n.vt==game_image+0x1cbf468&&create==game_image+0x588060)||(n.vt==game_image+0x1cbf520&&create==game_image+0x588190)))return 0;
- if(!select_resolved(owner,target)){choice.nodes[k]=0;return 0;}
+ bool same=false;
+ if(owned_actor==actor&&owned_expanded&&owned_kind>=0&&owned_kind<2){
+  Q current=ptr(controller+0xb0);
+  for(U depth=0;current&&depth<24;++depth){Node x{};if(!node(current,x))break;if(current==target){same=true;break;}if(x.parent==current)break;current=x.parent;}
+ }
+ if(!same&&!select_resolved(owner,target)){choice.nodes[k]=0;return 0;}
  choice.nodes[k]=target;
  log_event("longarm_resolve ready actor=%d weapon=%d kind=%d node_hash=%08x",actor,w,k,n.hash);return 1;
 }
 static bool active(int actor,U k){
+ if(k>=2)return false;
  Q expected=choice.nodes[k];if(!expected)return false;
  Node target{};if(!node(expected,target))return false;
  Q owner=owner_for(actor),controller=owner?ptr(owner+0xb0):0;
@@ -153,5 +146,21 @@ extern "C" int MS playing_node(int actor,const char* path){
 extern "C" bool MS rapid_pose(U actor,bool moving,bool crouched){
  if(!rifle(weapon(static_cast<int>(actor))))return original_rapid(actor,moving,crouched);
  return active(static_cast<int>(actor),(moving?1U:0U)+(crouched?2U:0U));
+}
+// This predicate replaces only the mod's early cover-passthrough check.
+// It never changes the game's cover state or fabricates mouse input.
+extern "C" int MS should_passthrough(int actor){
+ choice.crouch_passthrough=0;
+ int cover=original_cover(actor);if(cover)return cover;
+ if(!rifle(weapon(actor)))return 0;
+ const int pose=original_pose(actor);
+ if(pose==2||pose==3){choice.crouch_passthrough=1;return 1;}
+ return 0;
+}
+extern "C" void MS cancel_passthrough(void* controls,const char* reason,bool keep){
+ // Real cover keeps its original behavior. Rifle crouch must release our
+ // forced action node as well as its goals before ordinary fire resumes.
+ const bool normal=choice.crouch_passthrough!=0;
+ original_cancel(controls,normal?"longarm_crouch_passthrough":reason,normal?false:keep);
 }
 #include "signature.hpp"

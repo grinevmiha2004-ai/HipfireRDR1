@@ -20,91 +20,103 @@
   {
     "rva": "0x1f5c",
     "before": "d0b70000",
-    "after": "50690600",
+    "after": "d0670600",
     "reason": "select_node"
   },
   {
     "rva": "0x261d",
     "before": "cfb10000",
-    "after": "ef6b0600",
+    "after": "5f690600",
     "reason": "playing_node"
   },
   {
     "rva": "0x2656",
     "before": "16b40000",
-    "after": "166c0600",
+    "after": "86690600",
     "reason": "rapid_pose"
   },
   {
     "rva": "0x2805",
     "before": "e7af0000",
-    "after": "076a0600",
+    "after": "77670600",
     "reason": "playing_node"
   },
   {
     "rva": "0x43d5",
     "before": "57930000",
-    "after": "d7440600",
+    "after": "57430600",
     "reason": "select_node"
   },
   {
     "rva": "0x4a24",
     "before": "48900000",
-    "after": "48480600",
+    "after": "b8450600",
     "reason": "rapid_pose"
   },
   {
     "rva": "0x586d",
     "before": "bf7e0000",
-    "after": "3f300600",
+    "after": "bf2e0600",
     "reason": "select_node"
   },
   {
     "rva": "0x593c",
     "before": "30810000",
-    "after": "30390600",
+    "after": "a0360600",
     "reason": "rapid_pose"
   },
   {
     "rva": "0x5cdc",
     "before": "507a0000",
-    "after": "d02b0600",
+    "after": "502a0600",
     "reason": "select_node"
   },
   {
     "rva": "0x5dc6",
     "before": "66790000",
-    "after": "e62a0600",
+    "after": "66290600",
     "reason": "select_node"
   },
   {
     "rva": "0x5f02",
     "before": "2a780000",
-    "after": "aa290600",
+    "after": "2a280600",
     "reason": "select_node"
   },
   {
     "rva": "0x60f9",
     "before": "33760000",
-    "after": "b3270600",
+    "after": "33260600",
     "reason": "select_node"
   },
   {
     "rva": "0x612c",
     "before": "00760000",
-    "after": "80270600",
+    "after": "00260600",
     "reason": "select_node"
   },
   {
     "rva": "0x615f",
     "before": "cd750000",
-    "after": "4d270600",
+    "after": "cd250600",
     "reason": "select_node"
   },
   {
     "rva": "0x6400c",
     "before": "2097faff",
-    "after": "a0480000",
+    "after": "20470000",
     "reason": "select_node"
+  },
+  {
+    "rva": "0x4025",
+    "before": "c7980000",
+    "after": "17500600",
+    "reason": "should_passthrough"
+  },
+  {
+    "rva": "0x4763",
+    "before": "19d8ffff",
+    "after": "39490600",
+    "reason": "cancel_passthrough"
   }
 ]

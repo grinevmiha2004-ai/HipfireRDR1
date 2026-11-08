@@ -18,8 +18,8 @@ class LongarmTests(m.GuardTests):
   v.u.emu_start(v.base+syms[name][0],end,count=1000000);self.assertEqual(v.u.reg_read(UC_X86_REG_RIP),end)
   return v.u.reg_read(UC_X86_REG_RAX)
  def fixture(self,w=9,k=0,base=0x1cf0c0000,v=None):
-  v=v or self.vm(base);v.model=w;v.nodes={};v.children={};v.nodes_next=v.heap+0x40000;v.array_next=v.heap+0x60000
-  v.callbacks[v.base+0xd870]=lambda:v.model
+  v=v or self.vm(base);v.model=w;v.pose=k;v.real_cover=0;v.nodes={};v.children={};v.nodes_next=v.heap+0x40000;v.array_next=v.heap+0x60000
+  v.callbacks[v.base+0xd870]=lambda:v.model;v.callbacks[v.base+0x1490]=lambda:v.pose;v.callbacks[v.base+0xd8f0]=lambda:v.real_cover
   v.native_calls=[];v.old_nodes=[];v.play_queries=[]
   def oldselect():
    text=bytes(v.u.mem_read(v.u.reg_read(UC_X86_REG_RDX),256)).split(b'\0')[0].decode();v.old_nodes.append(text);return 1
@@ -66,7 +66,7 @@ class LongarmTests(m.GuardTests):
   v.q(leafvt+8,v.game+0x219640);v.q(leafvt+0x58,v.game+0x585e60);v.q(leafvt+0x60,v.game+0x585e70);v.q(leafvt+0x88,v.game+0x588190)
   for name in ['standing','moving','crouched','crouched_moving']:v.q(v.nodes[name],leafvt)
   v.leafvt=leafvt
-  v.expected=[v.nodes[x] for x in ['standing','moving','crouched','crouched_moving']][k]
+  v.expected=v.nodes['standing'] if k<2 else 0
   return v
  def path(self,v,k):
   rv=[0x202c0,0x201b8,0x20200,0x20260][k];text=bytes(p.get_data(rv,256)).split(b'\0')[0]
@@ -79,7 +79,7 @@ class LongarmTests(m.GuardTests):
   self.assertEqual(self.call(v,'playing_node',42,ptr),1);self.assertEqual(self.call(v,'rapid_pose',42,0,0)&255,1)
  def test_all_rifle_models_in_each_scoped_pose(self):
   for w in list(range(8,15))+list(range(16,21)):
-   for k in range(4):
+   for k in range(2):
     v=self.fixture(w,k);ptr,_=self.path(v,k)
     self.assertEqual(self.call(v,'select_node',42,ptr),1);self.assertEqual(v.selected,v.expected)
     self.assertEqual(self.call(v,'rapid_pose',42,k&1,k>=2)&255,1)
@@ -94,12 +94,11 @@ class LongarmTests(m.GuardTests):
   descendant=v.add('firechild',0x12345678,v.target);v.q(v.ctrl+0xb0,descendant)
   self.assertEqual(self.call(v,'playing_node',42,ptr),1)
   v.q(v.ctrl+0xb0,v.nodes['normal_standing']);self.assertEqual(self.call(v,'playing_node',42,ptr),0)
- def test_missing_crouch_and_ambiguous_tree_refuse_without_standing_fallback(self):
-  for issue in ['missing','ambiguous']:
-   v=self.fixture();k=2 if issue=='missing' else 1;ptr,_=self.path(v,k)
-   if issue=='missing':v.i(v.nodes['crouched']+0x38,0x1234)
-   else:v.add('duplicate',0x7e84a609,v.nodes['motion_de'])
-   self.assertEqual(self.call(v,'select_node',42,ptr),0);self.assertEqual(v.native_calls,[]);self.assertEqual(v.old_nodes,[])
+ def test_rifle_crouch_never_selects_a_hip_node_even_if_one_exists(self):
+  for k in [2,3]:
+   v=self.fixture(k=k);ptr,_=self.path(v,k)
+   self.assertEqual(self.call(v,'select_node',42,ptr),0);self.assertEqual(v.native_calls,[])
+   self.assertEqual(self.call(v,'rapid_pose',42,k&1,1)&255,0)
  def test_tampered_engine_code_layout_tree_and_nonlocal_actor_refuse(self):
   for issue in ['code','prologue','layout','global','owner','create']:
    v=self.fixture();ptr,_=self.path(v,0)
@@ -135,7 +134,7 @@ class LongarmTests(m.GuardTests):
   self.assertEqual(v.getq(v.ctrl+0x5a8),0);self.assertEqual(self.call(v,'playing_node',42,ptr),0)
  def test_real_start_branch_for_each_longarm_and_pose(self):
   for w in [8,9,12,15,16,17,18,19,20]:
-   for k in range(4):
+   for k in (range(4) if w==15 else range(2)):
     v=HandgunTests().vm(kind=k);self.fixture(w,k,v=v)
     # Keep the original test's node-call record for sawed-off passthrough.
     v.run(0x5c94,0x5b3f)
@@ -143,9 +142,9 @@ class LongarmTests(m.GuardTests):
     self.assertIn('aim',[c[0] for c in v.calls])
  def test_transitions_between_four_poses_retain_correct_active_node(self):
   v=self.fixture()
-  for k in [0,1,3,2,1,0]:
+  for k in [0,1,1,0]:
    ptr,_=self.path(v,k);self.assertEqual(self.call(v,'select_node',42,ptr),1)
-   self.assertEqual(v.selected,v.nodes[['standing','moving','crouched','crouched_moving'][k]])
+   self.assertEqual(v.selected,v.nodes['standing'])
    self.assertEqual(self.call(v,'rapid_pose',42,k&1,k>=2)&255,1)
   self.assertEqual(v.geti(v.shared+0x20),2)
  def test_real_autoreload_request_with_new_weapon_bookkeeping(self):
@@ -180,6 +179,47 @@ class LongarmTests(m.GuardTests):
  def test_standing_resolves_exact_recorded_path_despite_other_deadeye_variants(self):
   v=self.fixture();other=v.add('other_de',0x122ac9f4,v.nodes['rifle']);v.add('other_stand',0x61d07327,other)
   ptr,_=self.path(v,0);self.assertEqual(self.call(v,'select_node',42,ptr),1);self.assertEqual(v.selected,v.target)
+ def test_four_pose_passthrough_policy_for_every_weapon(self):
+  for w in range(21):
+   for k in range(4):
+    v=self.fixture(w,k);self.assertEqual(bool(self.call(v,'should_passthrough',42)),8<=w<=20 and w!=15 and k>=2)
+ def test_real_cover_preserves_its_original_result_for_all_weapons(self):
+  for w in [4,9,13,15,17]:
+   v=self.fixture(w,2);v.real_cover=3
+   self.assertEqual(self.call(v,'should_passthrough',42),3)
+ def test_walking_uses_same_hip_node_without_restarting_existing_animation(self):
+  v=self.fixture();ptr,_=self.path(v,0);self.call(v,'select_node',42,ptr)
+  self.assertEqual(len([c for c in v.native_calls if c[0]=='create']),1)
+  descendant=v.add('fire_descendant',0x12345678,v.target);v.q(v.ctrl+0xb0,descendant)
+  ptr,_=self.path(v,1);self.assertEqual(self.call(v,'select_node',42,ptr),1)
+  self.assertEqual(len([c for c in v.native_calls if c[0]=='create']),1)
+  self.assertEqual(self.call(v,'rapid_pose',42,1,0)&255,1)
+ def test_actual_crouch_passthrough_clears_queue_releases_goals_and_restores_fire(self):
+  for k in [2,3]:
+   v=self.fixture(k=k);v.q(v.frame+0x48,v.frame+0x150);v.i(v.frame+0x68,42)
+   v.q(v.frame+0x760,3);v.b(v.frame+0x770,1);v.b(v.frame+0x152,1);v.b(v.frame+0x153,1)
+   v.b(v.frame+0xe4,1);v.b(v.frame+0xe8,1);v.b(v.frame+0xf4,0);v.b(v.frame+0x60,0)
+   v.u.reg_write(UC_X86_REG_R13,0x50000500);v.clear_calls=0;v.release_calls=0
+   def clear():v.clear_calls+=1;return 0
+   def release():v.release_calls+=1;v.i(v.base+0xf7cc,-1);v.b(v.base+0x2407e,0);return 0
+   v.callbacks[v.base+0x1e30]=clear;v.callbacks[v.base+0x1ea0]=release
+   v.q(v.frame+0x7f8,2000);v.tick();self.assertEqual(self.condition(v),1)
+   v.run(0x4020,0x47fc)
+   self.assertEqual(v.getq(v.frame+0x760),0);self.assertEqual(v.u.mem_read(v.frame+0x770,1)[0],0)
+   self.assertEqual(v.geti(v.base+0xf7cc),-1);self.assertEqual(v.release_calls,1)
+   self.assertEqual(v.u.mem_read(v.base+0xf960,1)[0],0)
+   self.assertEqual(v.u.mem_read(v.frame+0x150,1)[0],1) # held input is consumed as state, not a queued click
+   self.assertEqual(v.native_calls,[]);self.assertEqual(self.condition(v),0)
+   # Execute the actual fire-query hook after handoff: real button data wins.
+   real=v.heap+0x10000;v.q(v.base+0xf990,0x50001200);v.callbacks[0x50001200]=lambda:real
+   end=0x5000f000;v.q(v.frame-8,end);v.u.reg_write(UC_X86_REG_RSP,v.frame-8);v.u.reg_write(UC_X86_REG_RCX,v.heap+0x11000);v.u.reg_write(UC_X86_REG_RDX,9)
+   v.u.emu_start(v.base+0xe240,end,count=10000);self.assertEqual(v.u.reg_read(UC_X86_REG_RAX),real)
+ def test_normal_cover_does_not_take_the_new_full_release_path(self):
+  v=self.fixture(k=2);v.real_cover=1;self.call(v,'should_passthrough',42)
+  result=[]
+  def cancel():result.append(v.u.reg_read(UC_X86_REG_R8));return 0
+  v.callbacks[v.base+0x1f80]=cancel
+  self.call(v,'cancel_passthrough',v.frame+0x150,v.base+0x20644,1);self.assertEqual(result,[1])
  def test_final_pe_and_original_sections(self):
   original=pefile.PE('/workspace/hipfire-series4/output/HipfireRDR1.red');allowed=set()
   for patch in json.loads((R/'patch-report.json').read_text()):

@@ -9,3 +9,10 @@ read_byte = 0x18a0;
 game_image = 0xf8f0;
 iat_rpm = 0x362d8;
 log_event = 0x1c90;
+
+original_pose = 0x1490;
+original_cover = 0xd8f0;
+original_cancel = 0x1f80;
+owned_actor = 0xf7cc;
+owned_kind = 0x24080;
+owned_expanded = 0x2407e;

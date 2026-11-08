@@ -27,6 +27,11 @@ for e in p.DIRECTORY_ENTRY_EXCEPTION:
    dest=i.operands[0].imm;assert i.size==5 and i.imm_size==4
    patch(i.address+1,i.bytes[1:],struct.pack('<i',syms[redirect[dest]][0]-i.address-5),redirect[dest]);counts[dest]+=1
 assert all(counts.values())
+# Reuse the existing early control-passthrough branch. Only these two
+# calls are policy-specific; the rest of cover handling remains unchanged.
+for call,old_target,name in [(0x4024,0xd8f0,'should_passthrough'),(0x4762,0x1f80,'cancel_passthrough')]:
+ old=p.get_data(call,5);assert old[0]==0xe8 and call+5+struct.unpack('<i',old[1:])[0]==old_target
+ patch(call+1,old[1:],struct.pack('<i',syms[name][0]-call-5),name)
 code=bytearray((R/'code.bin').read_bytes());code_rva=0x68000
 function_names={l.split()[3] for l in subprocess.check_output(['nm','-S','--defined-only','longarms.elf'],cwd=R,text=True).splitlines() if len(l.split())==4 and l.split()[2].lower()=='t'}
 entries=[];regs={'rbx':3,'rbp':5,'rsi':6,'rdi':7,'r12':12,'r13':13,'r14':14,'r15':15}
